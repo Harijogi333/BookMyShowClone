@@ -1,5 +1,7 @@
 package com.clone.BookMyShow.controller;
 
+import com.clone.BookMyShow.dto.AuthResponse;
+import com.clone.BookMyShow.dto.LoginRequest;
 import com.clone.BookMyShow.dto.SignupRequest;
 import com.clone.BookMyShow.dto.UserResponse;
 import com.clone.BookMyShow.service.UserService;
@@ -22,5 +24,10 @@ public class AuthController {
     @PostMapping("/signup")
     public ResponseEntity<UserResponse> signup(@Valid @RequestBody SignupRequest signupRequest) {
         return new ResponseEntity<>(userService.registerUser(signupRequest), HttpStatus.CREATED);
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest loginRequest) {
+        return ResponseEntity.ok(userService.login(loginRequest));
     }
 }
