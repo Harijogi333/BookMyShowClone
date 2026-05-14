@@ -1,0 +1,26 @@
+package com.clone.BookMyShow.controller;
+
+import com.clone.BookMyShow.dto.SignupRequest;
+import com.clone.BookMyShow.dto.UserResponse;
+import com.clone.BookMyShow.service.UserService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequestMapping("/api/v1/auth")
+@RequiredArgsConstructor
+public class AuthController {
+
+    private final UserService userService;
+
+    @PostMapping("/signup")
+    public ResponseEntity<UserResponse> signup(@Valid @RequestBody SignupRequest signupRequest) {
+        return new ResponseEntity<>(userService.registerUser(signupRequest), HttpStatus.CREATED);
+    }
+}
