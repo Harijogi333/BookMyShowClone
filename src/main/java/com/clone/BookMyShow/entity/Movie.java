@@ -43,6 +43,9 @@ public class Movie {
 
     private Double rating;
 
+    @Column(nullable = false)
+    private boolean isActive = true;
+
     @CreationTimestamp
     @Column(updatable = false)
     private LocalDateTime createdAt;

@@ -38,6 +38,9 @@ public class Theater {
     @OneToMany(mappedBy = "theater", cascade = CascadeType.ALL)
     private java.util.List<Screen> screens;
 
+    @Column(nullable = false)
+    private boolean isActive = true;
+
     @CreationTimestamp
     @Column(updatable = false)
     private LocalDateTime createdAt;

@@ -35,6 +35,9 @@ public class Screen {
     @OneToMany(mappedBy = "screen", cascade = CascadeType.ALL)
     private List<Seat> seats;
 
+    @Column(nullable = false)
+    private boolean isActive = true;
+
     @CreationTimestamp
     @Column(updatable = false)
     private LocalDateTime createdAt;

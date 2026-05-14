@@ -37,6 +37,9 @@ public class Show {
     @NotNull(message = "Screen is required")
     private Screen screen;
 
+    @Column(nullable = false)
+    private boolean isActive = true;
+
     @CreationTimestamp
     @Column(updatable = false)
     private LocalDateTime createdAt;
