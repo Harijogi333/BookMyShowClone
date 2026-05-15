@@ -9,5 +9,5 @@ import java.util.List;
 @Repository
 public interface ScreenRepository extends JpaRepository<Screen, Long> {
     List<Screen> findByTheaterId(Long theaterId);
-    boolean existsByNameAndTheaterId(String name, Long theaterId);
+    boolean existsByNameIgnoreCaseAndTheaterId(String name, Long theaterId);
 }
