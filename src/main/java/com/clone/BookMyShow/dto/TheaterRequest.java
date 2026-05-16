@@ -18,5 +18,5 @@ public class TheaterRequest {
     @NotNull(message = "Owner ID is required")
     private Long ownerId;
 
-    private boolean isActive = true;
+    private Boolean isActive;
 }

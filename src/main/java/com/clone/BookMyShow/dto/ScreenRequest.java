@@ -12,5 +12,5 @@ public class ScreenRequest {
     @NotNull(message = "Theater ID is required")
     private Long theaterId;
 
-    private boolean isActive = true;
+    private Boolean isActive;
 }

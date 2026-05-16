@@ -41,7 +41,9 @@ public class CityServiceImpl implements CityService {
         }
         
         city.setName(cityRequest.getName());
-        city.setActive(cityRequest.isActive());
+        if (cityRequest.getIsActive() != null) {
+            city.setActive(cityRequest.getIsActive());
+        }
         City updatedCity = cityRepository.save(city);
         return mapToResponse(updatedCity);
     }
