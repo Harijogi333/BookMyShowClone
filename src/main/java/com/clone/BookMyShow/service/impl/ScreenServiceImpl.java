@@ -32,12 +32,12 @@ public class ScreenServiceImpl implements ScreenService {
 
         validateTheaterOwnership(theater);
 
-        if (!theater.getCity().isActive()) {
+        if (!theater.getCity().getIsActive()) {
             throw new ResourceNotFoundException("Cannot add screen to theater '" + theater.getName() + 
                     "' because the city '" + theater.getCity().getName() + "' is currently inactive.");
         }
 
-        if (!theater.isActive()) {
+        if (!theater.getIsActive()) {
             throw new ResourceNotFoundException("Cannot add screen to theater '" + theater.getName() + "' because the theater is currently inactive.");
         }
 
@@ -49,7 +49,7 @@ public class ScreenServiceImpl implements ScreenService {
         Screen screen = new Screen();
         screen.setName(screenRequest.getName());
         screen.setTheater(theater);
-        screen.setActive(screenRequest.getIsActive());
+        screen.setIsActive(screenRequest.getIsActive() != null ? screenRequest.getIsActive() : true);
 
         Screen savedScreen = screenRepository.save(screen);
         return mapToResponse(savedScreen);
@@ -65,12 +65,12 @@ public class ScreenServiceImpl implements ScreenService {
 
         validateTheaterOwnership(theater);
 
-        if (!theater.getCity().isActive()) {
+        if (!theater.getCity().getIsActive()) {
             throw new ResourceNotFoundException("Cannot update screen in theater '" + theater.getName() + 
                     "' because the city '" + theater.getCity().getName() + "' is currently inactive.");
         }
 
-        if (!theater.isActive()) {
+        if (!theater.getIsActive()) {
             throw new ResourceNotFoundException("Cannot update screen in theater '" + theater.getName() + "' because the theater is currently inactive.");
         }
 
@@ -83,7 +83,7 @@ public class ScreenServiceImpl implements ScreenService {
         screen.setName(screenRequest.getName());
         screen.setTheater(theater);
         if (screenRequest.getIsActive() != null) {
-            screen.setActive(screenRequest.getIsActive());
+            screen.setIsActive(screenRequest.getIsActive());
         }
 
         Screen updatedScreen = screenRepository.save(screen);
@@ -97,7 +97,7 @@ public class ScreenServiceImpl implements ScreenService {
         
         validateTheaterOwnership(screen.getTheater());
         
-        screen.setActive(false);
+        screen.setIsActive(false);
         screenRepository.save(screen);
     }
 
@@ -135,7 +135,7 @@ public class ScreenServiceImpl implements ScreenService {
                 .name(screen.getName())
                 .theaterId(screen.getTheater().getId())
                 .theaterName(screen.getTheater().getName())
-                .isActive(screen.isActive())
+                .isActive(screen.getIsActive())
                 .createdAt(screen.getCreatedAt())
                 .updatedAt(screen.getUpdatedAt())
                 .build();

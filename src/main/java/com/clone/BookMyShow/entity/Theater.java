@@ -44,7 +44,7 @@ public class Theater {
     private java.util.List<Screen> screens;
 
     @Column(nullable = false)
-    private boolean isActive = true;
+    private Boolean isActive = true;
 
     @CreationTimestamp
     @Column(updatable = false)

@@ -43,7 +43,7 @@ public class UserServiceImpl implements UserService {
         user.setPhone(signupRequest.getPhone());
         user.setPassword(passwordEncoder.encode(signupRequest.getPassword()));
         user.setRole(Role.USER);
-        user.setActive(true); // Explicitly setting for clarity
+        user.setIsActive(true); // Explicitly setting for clarity
 
         User savedUser = userRepository.save(user);
 
@@ -55,7 +55,7 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findByEmail(loginRequest.getEmail())
                 .orElseThrow(() -> new RuntimeException("User not found with email: " + loginRequest.getEmail()));
 
-        if (!user.isActive()) {
+        if (!user.getIsActive()) {
             throw new RuntimeException("Your account is currently inactive. Please contact support.");
         }
 
@@ -80,7 +80,7 @@ public class UserServiceImpl implements UserService {
                 .email(user.getEmail())
                 .phone(user.getPhone())
                 .role(user.getRole())
-                .isActive(user.isActive())
+                .isActive(user.getIsActive())
                 .createdAt(user.getCreatedAt())
                 .updatedAt(user.getUpdatedAt())
                 .build();

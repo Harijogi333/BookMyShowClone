@@ -36,7 +36,7 @@ public class Screen {
     private List<Seat> seats;
 
     @Column(nullable = false)
-    private boolean isActive = true;
+    private Boolean isActive = true;
 
     @CreationTimestamp
     @Column(updatable = false)

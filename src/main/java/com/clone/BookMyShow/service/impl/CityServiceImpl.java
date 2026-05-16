@@ -26,7 +26,7 @@ public class CityServiceImpl implements CityService {
         }
         City city = new City();
         city.setName(cityRequest.getName());
-        city.setActive(cityRequest.getIsActive());
+        city.setIsActive(cityRequest.getIsActive() != null ? cityRequest.getIsActive() : true);
         City savedCity = cityRepository.save(city);
         return mapToResponse(savedCity);
     }
@@ -42,7 +42,7 @@ public class CityServiceImpl implements CityService {
         
         city.setName(cityRequest.getName());
         if (cityRequest.getIsActive() != null) {
-            city.setActive(cityRequest.getIsActive());
+            city.setIsActive(cityRequest.getIsActive());
         }
         City updatedCity = cityRepository.save(city);
         return mapToResponse(updatedCity);
@@ -52,7 +52,7 @@ public class CityServiceImpl implements CityService {
     public void deleteCity(Long id) {
         City city = cityRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("City not found with id: " + id));
-        city.setActive(false);
+        city.setIsActive(false);
         cityRepository.save(city);
     }
 
@@ -73,7 +73,7 @@ public class CityServiceImpl implements CityService {
     @Override
     public List<CityResponse> getActiveCities() {
         return cityRepository.findAll().stream()
-                .filter(City::isActive)
+                .filter(City::getIsActive)
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
@@ -82,7 +82,7 @@ public class CityServiceImpl implements CityService {
         return CityResponse.builder()
                 .id(city.getId())
                 .name(city.getName())
-                .isActive(city.isActive())
+                .isActive(city.getIsActive())
                 .createdAt(city.getCreatedAt())
                 .updatedAt(city.getUpdatedAt())
                 .build();

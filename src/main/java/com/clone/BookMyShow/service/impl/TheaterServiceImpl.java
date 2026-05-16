@@ -34,7 +34,7 @@ public class TheaterServiceImpl implements TheaterService {
         City city = cityRepository.findById(theaterRequest.getCityId())
                 .orElseThrow(() -> new ResourceNotFoundException("City not found with id: " + theaterRequest.getCityId()));
 
-        if (!city.isActive()) {
+        if (!city.getIsActive()) {
             throw new ResourceNotFoundException("Cannot add theater to city '" + city.getName() + "' because the city is currently inactive.");
         }
 
@@ -56,7 +56,7 @@ public class TheaterServiceImpl implements TheaterService {
         theater.setAddress(theaterRequest.getAddress());
         theater.setCity(city);
         theater.setOwner(owner);
-        theater.setActive(theaterRequest.getIsActive());
+        theater.setIsActive(theaterRequest.getIsActive() != null ? theaterRequest.getIsActive() : true);
 
         Theater savedTheater = theaterRepository.save(theater);
         return mapToResponse(savedTheater);
@@ -72,7 +72,7 @@ public class TheaterServiceImpl implements TheaterService {
         City city = cityRepository.findById(theaterRequest.getCityId())
                 .orElseThrow(() -> new ResourceNotFoundException("City not found with id: " + theaterRequest.getCityId()));
 
-        if (!city.isActive()) {
+        if (!city.getIsActive()) {
             throw new ResourceNotFoundException("Cannot update theater in city '" + city.getName() + "' because the city is currently inactive.");
         }
 
@@ -96,7 +96,7 @@ public class TheaterServiceImpl implements TheaterService {
         theater.setCity(city);
         theater.setOwner(owner);
         if (theaterRequest.getIsActive() != null) {
-            theater.setActive(theaterRequest.getIsActive());
+            theater.setIsActive(theaterRequest.getIsActive());
         }
 
 
@@ -111,7 +111,7 @@ public class TheaterServiceImpl implements TheaterService {
         
         validateOwnership(theater);
         
-        theater.setActive(false);
+        theater.setIsActive(false);
         theaterRepository.save(theater);
     }
 
@@ -159,7 +159,7 @@ public class TheaterServiceImpl implements TheaterService {
                 .cityName(theater.getCity().getName())
                 .ownerId(theater.getOwner().getId())
                 .ownerName(theater.getOwner().getName())
-                .isActive(theater.isActive())
+                .isActive(theater.getIsActive())
                 .createdAt(theater.getCreatedAt())
                 .updatedAt(theater.getUpdatedAt())
                 .build();

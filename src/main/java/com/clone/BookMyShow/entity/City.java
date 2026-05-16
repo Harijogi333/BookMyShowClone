@@ -29,7 +29,7 @@ public class City {
     private java.util.List<Theater> theaters;
 
     @Column(nullable = false)
-    private boolean isActive = true;
+    private Boolean isActive = true;
 
     @CreationTimestamp
     @Column(updatable = false)
