@@ -10,9 +10,15 @@ import java.util.Collection;
 import java.util.List;
 
 @RequiredArgsConstructor
-public class CustomUserDetails implements UserDetails {
+public class
+CustomUserDetails implements UserDetails {
 
     private final User user;
+
+    public Long getId() {
+
+        return user.getId();
+    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

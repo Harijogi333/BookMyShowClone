@@ -17,6 +17,8 @@ public class TheaterResponse {
     private String address;
     private Long cityId;
     private String cityName;
+    private Long ownerId;
+    private String ownerName;
     private boolean isActive;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

@@ -43,27 +43,25 @@ public class UserServiceImpl implements UserService {
         user.setPhone(signupRequest.getPhone());
         user.setPassword(passwordEncoder.encode(signupRequest.getPassword()));
         user.setRole(Role.USER);
+        user.setActive(true); // Explicitly setting for clarity
 
         User savedUser = userRepository.save(user);
 
-        return UserResponse.builder()
-                .id(savedUser.getId())
-                .name(savedUser.getName())
-                .email(savedUser.getEmail())
-                .phone(savedUser.getPhone())
-                .role(savedUser.getRole())
-                .createdAt(savedUser.getCreatedAt())
-                .build();
+        return mapToUserResponse(savedUser);
     }
 
     @Override
     public AuthResponse login(LoginRequest loginRequest) {
+        User user = userRepository.findByEmail(loginRequest.getEmail())
+                .orElseThrow(() -> new RuntimeException("User not found with email: " + loginRequest.getEmail()));
+
+        if (!user.isActive()) {
+            throw new RuntimeException("Your account is currently inactive. Please contact support.");
+        }
+
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword())
         );
-
-        User user = userRepository.findByEmail(loginRequest.getEmail())
-                .orElseThrow(() -> new RuntimeException("User not found"));
         
         UserDetails userDetails = userDetailsService.loadUserByUsername(loginRequest.getEmail());
         String jwtToken = jwtUtils.generateToken(userDetails);
@@ -72,6 +70,19 @@ public class UserServiceImpl implements UserService {
                 .token(jwtToken)
                 .email(user.getEmail())
                 .role(user.getRole().name())
+                .build();
+    }
+
+    private UserResponse mapToUserResponse(User user) {
+        return UserResponse.builder()
+                .id(user.getId())
+                .name(user.getName())
+                .email(user.getEmail())
+                .phone(user.getPhone())
+                .role(user.getRole())
+                .isActive(user.isActive())
+                .createdAt(user.getCreatedAt())
+                .updatedAt(user.getUpdatedAt())
                 .build();
     }
 }

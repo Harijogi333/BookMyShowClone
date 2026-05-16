@@ -26,6 +26,7 @@ public class CityServiceImpl implements CityService {
         }
         City city = new City();
         city.setName(cityRequest.getName());
+        city.setActive(cityRequest.isActive());
         City savedCity = cityRepository.save(city);
         return mapToResponse(savedCity);
     }
@@ -40,6 +41,7 @@ public class CityServiceImpl implements CityService {
         }
         
         city.setName(cityRequest.getName());
+        city.setActive(cityRequest.isActive());
         City updatedCity = cityRepository.save(city);
         return mapToResponse(updatedCity);
     }

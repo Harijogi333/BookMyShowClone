@@ -35,6 +35,11 @@ public class Theater {
     @NotNull(message = "City is required")
     private City city;
 
+    @ManyToOne
+    @JoinColumn(name = "owner_id", nullable = false)
+    @NotNull(message = "Owner is required")
+    private User owner;
+
     @OneToMany(mappedBy = "theater", cascade = CascadeType.ALL)
     private java.util.List<Screen> screens;
 

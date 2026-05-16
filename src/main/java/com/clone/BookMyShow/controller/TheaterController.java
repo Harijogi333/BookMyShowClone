@@ -26,7 +26,7 @@ public class TheaterController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'THEATER_OWNER')")
     public ResponseEntity<TheaterResponse> updateTheater(@PathVariable Long id, @Valid @RequestBody TheaterRequest theaterRequest) {
         return ResponseEntity.ok(theaterService.updateTheater(id, theaterRequest));
     }

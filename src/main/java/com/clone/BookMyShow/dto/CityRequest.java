@@ -7,4 +7,6 @@ import lombok.Data;
 public class CityRequest {
     @NotBlank(message = "City name is required")
     private String name;
+
+    private boolean isActive = true;
 }
