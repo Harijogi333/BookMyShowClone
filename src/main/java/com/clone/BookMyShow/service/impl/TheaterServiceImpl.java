@@ -56,7 +56,7 @@ public class TheaterServiceImpl implements TheaterService {
         theater.setAddress(theaterRequest.getAddress());
         theater.setCity(city);
         theater.setOwner(owner);
-        theater.setActive(theaterRequest.isActive());
+        theater.setActive(theaterRequest.getIsActive());
 
         Theater savedTheater = theaterRepository.save(theater);
         return mapToResponse(savedTheater);

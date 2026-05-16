@@ -49,7 +49,7 @@ public class ScreenServiceImpl implements ScreenService {
         Screen screen = new Screen();
         screen.setName(screenRequest.getName());
         screen.setTheater(theater);
-        screen.setActive(screenRequest.isActive());
+        screen.setActive(screenRequest.getIsActive());
 
         Screen savedScreen = screenRepository.save(screen);
         return mapToResponse(savedScreen);
