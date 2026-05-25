@@ -2,6 +2,7 @@ package com.clone.BookMyShow.service;
 
 import com.clone.BookMyShow.dto.ShowRequest;
 import com.clone.BookMyShow.dto.ShowResponse;
+import com.clone.BookMyShow.dto.ShowSeatResponse;
 
 import java.util.List;
 
@@ -17,4 +18,5 @@ public interface ShowService {
     List<ShowResponse> getShowsByMovieAndCity(Long movieId, Long cityId);
     List<ShowResponse> getShowsByMovieAndDate(Long movieId, java.time.LocalDate date);
     List<ShowResponse> getActiveShows();
+    List<ShowSeatResponse> getShowSeats(Long showId);
 }

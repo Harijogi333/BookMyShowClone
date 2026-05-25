@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import com.clone.BookMyShow.dto.ShowSeatResponse;
 
 import java.util.List;
 
@@ -80,5 +81,10 @@ public class ShowController {
     @GetMapping("/active")
     public ResponseEntity<List<ShowResponse>> getActiveShows() {
         return ResponseEntity.ok(showService.getActiveShows());
+    }
+
+    @GetMapping("/{showId}/seats")
+    public ResponseEntity<List<ShowSeatResponse>> getShowSeats(@PathVariable Long showId) {
+        return ResponseEntity.ok(showService.getShowSeats(showId));
     }
 }

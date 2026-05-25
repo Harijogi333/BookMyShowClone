@@ -13,6 +13,10 @@ import java.util.List;
 
 @Repository
 public interface ShowSeatRepository extends JpaRepository<ShowSeat, Long> {
+    
+    @Query("SELECT ss FROM ShowSeat ss JOIN FETCH ss.seat s WHERE ss.show.id = :showId")
+    List<ShowSeat> findByShowIdWithSeat(@Param("showId") Long showId);
+
     List<ShowSeat> findByShowId(Long showId);
 
     boolean existsByShowIdAndStatusIn(Long showId, Collection<ShowSeatStatus> statuses);

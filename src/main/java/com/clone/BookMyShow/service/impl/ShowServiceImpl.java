@@ -2,6 +2,7 @@ package com.clone.BookMyShow.service.impl;
 
 import com.clone.BookMyShow.dto.ShowRequest;
 import com.clone.BookMyShow.dto.ShowResponse;
+import com.clone.BookMyShow.dto.ShowSeatResponse;
 import com.clone.BookMyShow.entity.*;
 import com.clone.BookMyShow.exception.ResourceAlreadyExistsException;
 import com.clone.BookMyShow.exception.ResourceNotFoundException;
@@ -282,6 +283,27 @@ public class ShowServiceImpl implements ShowService {
         return showRepository.findByIsActiveTrue().stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<ShowSeatResponse> getShowSeats(Long showId) {
+        if (!showRepository.existsById(showId)) {
+            throw new ResourceNotFoundException("Show not found with id: " + showId);
+        }
+        return showSeatRepository.findByShowIdWithSeat(showId).stream()
+                .map(this::mapToShowSeatResponse)
+                .collect(Collectors.toList());
+    }
+
+    private ShowSeatResponse mapToShowSeatResponse(ShowSeat showSeat) {
+        return ShowSeatResponse.builder()
+                .id(showSeat.getId())
+                .seatId(showSeat.getSeat().getId())
+                .seatNumber(showSeat.getSeat().getSeatNumber())
+                .seatType(showSeat.getSeat().getSeatType())
+                .price(showSeat.getPrice())
+                .status(showSeat.getStatus())
+                .build();
     }
 
     private ShowResponse mapToResponse(Show show) {
