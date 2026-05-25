@@ -33,6 +33,8 @@ public class Seat {
     @ManyToOne
     @JoinColumn(name = "screen_id", nullable = false)
     @NotNull(message = "Screen is required")
+    @lombok.ToString.Exclude
+    @lombok.EqualsAndHashCode.Exclude
     private Screen screen;
 
     @Column(nullable = false)

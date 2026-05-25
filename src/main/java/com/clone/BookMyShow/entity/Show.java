@@ -30,11 +30,15 @@ public class Show {
     @ManyToOne
     @JoinColumn(name = "movie_id", nullable = false)
     @NotNull(message = "Movie is required")
+    @lombok.ToString.Exclude
+    @lombok.EqualsAndHashCode.Exclude
     private Movie movie;
 
     @ManyToOne
     @JoinColumn(name = "screen_id", nullable = false)
     @NotNull(message = "Screen is required")
+    @lombok.ToString.Exclude
+    @lombok.EqualsAndHashCode.Exclude
     private Screen screen;
 
     @Column(nullable = false)

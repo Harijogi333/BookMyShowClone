@@ -25,11 +25,15 @@ public class ShowSeat {
     @ManyToOne
     @JoinColumn(name = "show_id", nullable = false)
     @NotNull(message = "Show is required")
+    @lombok.ToString.Exclude
+    @lombok.EqualsAndHashCode.Exclude
     private Show show;
 
     @ManyToOne
     @JoinColumn(name = "seat_id", nullable = false)
     @NotNull(message = "Seat is required")
+    @lombok.ToString.Exclude
+    @lombok.EqualsAndHashCode.Exclude
     private Seat seat;
 
     @PositiveOrZero(message = "Price cannot be negative")

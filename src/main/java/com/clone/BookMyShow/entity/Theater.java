@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import java.util.List;
 
 import java.time.LocalDateTime;
 
@@ -33,15 +34,19 @@ public class Theater {
     @ManyToOne
     @JoinColumn(name = "city_id", nullable = false)
     @NotNull(message = "City is required")
+    @lombok.ToString.Exclude
+    @lombok.EqualsAndHashCode.Exclude
     private City city;
 
     @ManyToOne
     @JoinColumn(name = "owner_id", nullable = false)
     @NotNull(message = "Owner is required")
+    @lombok.ToString.Exclude
+    @lombok.EqualsAndHashCode.Exclude
     private User owner;
 
     @OneToMany(mappedBy = "theater", cascade = CascadeType.ALL)
-    private java.util.List<Screen> screens;
+    private List<Screen> screens;
 
     @Column(nullable = false)
     private Boolean isActive = true;

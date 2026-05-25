@@ -10,6 +10,13 @@ import java.util.List;
 @Repository
 public interface ScreenRepository extends JpaRepository<Screen, Long> {
 
+    @Query("SELECT s FROM Screen s " +
+           "JOIN FETCH s.theater t " +
+           "JOIN FETCH t.city c " +
+           "JOIN FETCH t.owner o " +
+           "WHERE s.id = :id")
+    java.util.Optional<Screen> findByIdWithHierarchy(@org.springframework.data.repository.query.Param("id") Long id);
+
     @Query("SELECT s FROM Screen s JOIN s.theater t JOIN t.city c WHERE t.id = :theaterId AND s.isActive = true AND t.isActive = true AND c.isActive = true")
     List<Screen> findActiveScreensByTheaterId(Long theaterId);
 

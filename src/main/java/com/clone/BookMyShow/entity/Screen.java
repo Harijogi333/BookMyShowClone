@@ -30,6 +30,8 @@ public class Screen {
     @ManyToOne
     @JoinColumn(name = "theater_id", nullable = false)
     @NotNull(message = "Theater is required")
+    @lombok.ToString.Exclude
+    @lombok.EqualsAndHashCode.Exclude
     private Theater theater;
 
     @OneToMany(mappedBy = "screen", cascade = CascadeType.ALL)
