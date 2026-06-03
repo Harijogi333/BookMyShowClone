@@ -44,6 +44,14 @@ public class ShowSeat {
     @NotNull(message = "Status is required")
     private ShowSeatStatus status = ShowSeatStatus.AVAILABLE;
 
+    private LocalDateTime blockedAt;
+
+    @ManyToOne
+    @JoinColumn(name = "booking_id")
+    @lombok.ToString.Exclude
+    @lombok.EqualsAndHashCode.Exclude
+    private Booking booking;
+
     @CreationTimestamp
     @Column(updatable = false)
     private LocalDateTime createdAt;
