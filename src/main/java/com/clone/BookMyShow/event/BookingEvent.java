@@ -6,13 +6,12 @@ import lombok.Getter;
 import org.springframework.context.ApplicationEvent;
 
 @Getter
-public class BookingEvent extends ApplicationEvent
+public class BookingEvent
 {
        private final Booking booking;
-       public BookingEvent(Object source, Booking booking)
+       public BookingEvent(Booking booking)
        {
-             super(source);
-             this.booking = booking;
+           this.booking = booking;
        }
 }
 

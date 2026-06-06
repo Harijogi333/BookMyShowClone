@@ -6,8 +6,10 @@ import com.clone.BookMyShow.entity.ShowSeat;
 import com.clone.BookMyShow.entity.ShowSeatStatus;
 import com.clone.BookMyShow.repository.BookingRepository;
 import com.clone.BookMyShow.repository.ShowSeatRepository;
+import com.clone.BookMyShow.event.BookingEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,6 +24,7 @@ public class BookingCleanupTask {
 
     private final BookingRepository bookingRepository;
     private final ShowSeatRepository showSeatRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     // TTL for seat blocks (e.g., 5 minutes)
     private static final int TTL_MINUTES = 2;
@@ -51,6 +54,9 @@ public class BookingCleanupTask {
                     ss.setBooking(null);
                 }
                 showSeatRepository.saveAll(showSeats);
+
+                // 3. Publish Event
+                eventPublisher.publishEvent(new BookingEvent(booking));
             }
             bookingRepository.saveAll(expiredBookings);
             log.info("Cleanup completed.");

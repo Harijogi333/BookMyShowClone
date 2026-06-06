@@ -3,6 +3,7 @@ package com.clone.BookMyShow.service.impl;
 import com.clone.BookMyShow.dto.BookingRequest;
 import com.clone.BookMyShow.dto.BookingResponse;
 import com.clone.BookMyShow.entity.*;
+import com.clone.BookMyShow.event.BookingEvent;
 import com.clone.BookMyShow.exception.ResourceNotFoundException;
 import com.clone.BookMyShow.repository.BookingRepository;
 import com.clone.BookMyShow.repository.ShowSeatRepository;
@@ -10,6 +11,7 @@ import com.clone.BookMyShow.repository.UserRepository;
 import com.clone.BookMyShow.security.CustomUserDetails;
 import com.clone.BookMyShow.service.BookingService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +27,7 @@ public class BookingServiceImpl implements BookingService {
     private final BookingRepository bookingRepository;
     private final ShowSeatRepository showSeatRepository;
     private final UserRepository userRepository;
+    private final ApplicationEventPublisher applicationEventPublisher;
 
     @Override
     @Transactional
@@ -75,6 +78,9 @@ public class BookingServiceImpl implements BookingService {
         }
         showSeatRepository.saveAll(showSeats);
 
+        // 7. Publish Event
+        applicationEventPublisher.publishEvent(new BookingEvent(savedBooking));
+
         return mapToResponse(savedBooking);
     }
 
@@ -104,6 +110,9 @@ public class BookingServiceImpl implements BookingService {
             ss.setStatus(ShowSeatStatus.BOOKED);
             ss.setBlockedAt(null);
         }
+
+        // 4. Publish Event
+        applicationEventPublisher.publishEvent(new BookingEvent(savedBooking));
 
         return mapToResponse(savedBooking);
     }
@@ -138,6 +147,9 @@ public class BookingServiceImpl implements BookingService {
 
         // 2. Bulk Release Seats (Efficiency)
         showSeatRepository.releaseSeatsByBookingId(id, ShowSeatStatus.AVAILABLE);
+
+        // 3. Publish Event
+        applicationEventPublisher.publishEvent(new BookingEvent(booking));
     }
 
     private BookingResponse mapToResponse(Booking booking) {
