@@ -8,6 +8,8 @@ import com.clone.BookMyShow.exception.ResourceNotFoundException;
 import com.clone.BookMyShow.repository.MovieRepository;
 import com.clone.BookMyShow.service.MovieService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -20,6 +22,7 @@ public class MovieServiceImpl implements MovieService {
     private final MovieRepository movieRepository;
 
     @Override
+    @CacheEvict(value = "movies", allEntries = true)
     public MovieResponse addMovie(MovieRequest movieRequest) {
         movieRepository.findByTitleAndLanguage(movieRequest.getTitle(), movieRequest.getLanguage())
                 .ifPresent(M -> {
@@ -35,6 +38,7 @@ public class MovieServiceImpl implements MovieService {
     }
 
     @Override
+    @CacheEvict(value = "movies", allEntries = true)
     public MovieResponse updateMovie(Long id, MovieRequest movieRequest) {
         Movie movie = movieRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Movie not found with id: " + id));
@@ -56,6 +60,7 @@ public class MovieServiceImpl implements MovieService {
     }
 
     @Override
+    @CacheEvict(value = "movies", allEntries = true)
     public void deleteMovie(Long id) {
         Movie movie = movieRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Movie not found with id: " + id));
@@ -64,6 +69,7 @@ public class MovieServiceImpl implements MovieService {
     }
 
     @Override
+    @Cacheable(value = "movies", key = "#id")
     public MovieResponse getMovieById(Long id) {
         Movie movie = movieRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Movie not found with id: " + id));
@@ -71,6 +77,7 @@ public class MovieServiceImpl implements MovieService {
     }
 
     @Override
+    @Cacheable(value = "movies", key = "'all'")
     public List<MovieResponse> getAllMovies() {
         return movieRepository.findAll().stream()
                 .map(this::mapToResponse)
@@ -78,6 +85,7 @@ public class MovieServiceImpl implements MovieService {
     }
 
     @Override
+    @Cacheable(value = "movies", key = "'active'")
     public List<MovieResponse> getActiveMovies() {
         return movieRepository.findByIsActiveTrue().stream()
                 .map(this::mapToResponse)

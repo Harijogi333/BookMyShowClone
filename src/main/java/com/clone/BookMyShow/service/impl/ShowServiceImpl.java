@@ -10,6 +10,9 @@ import com.clone.BookMyShow.repository.*;
 import com.clone.BookMyShow.security.CustomUserDetails;
 import com.clone.BookMyShow.service.ShowService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -35,6 +38,7 @@ public class ShowServiceImpl implements ShowService {
 
     @Override
     @Transactional
+    @CacheEvict(value = "shows", allEntries = true)
     public ShowResponse addShow(ShowRequest showRequest) {
         // Validation: Start time cannot be in the past
         if (showRequest.getStartTime().isBefore(LocalDateTime.now())) {
@@ -77,6 +81,10 @@ public class ShowServiceImpl implements ShowService {
 
     @Override
     @Transactional
+    @Caching(evict = {
+        @CacheEvict(value = "shows", allEntries = true),
+        @CacheEvict(value = "showSeats", key = "#id")
+    })
     public ShowResponse updateShow(Long id, ShowRequest showRequest) {
         Show show = showRepository.findByIdWithHierarchy(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Show not found with id: " + id));
@@ -195,6 +203,10 @@ public class ShowServiceImpl implements ShowService {
 
     @Override
     @Transactional
+    @Caching(evict = {
+        @CacheEvict(value = "shows", allEntries = true),
+        @CacheEvict(value = "showSeats", key = "#id")
+    })
     public void deleteShow(Long id) {
         Show show = showRepository.findByIdWithHierarchy(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Show not found with id: " + id));
@@ -230,6 +242,7 @@ public class ShowServiceImpl implements ShowService {
     }
 
     @Override
+    @Cacheable(value = "shows", key = "#id")
     public ShowResponse getShowById(Long id) {
         Show show = showRepository.findByIdWithHierarchy(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Show not found with id: " + id));
@@ -258,6 +271,7 @@ public class ShowServiceImpl implements ShowService {
     }
 
     @Override
+    @Cacheable(value = "shows", key = "'city:' + #cityId")
     public List<ShowResponse> getShowsByCity(Long cityId) {
         return showRepository.findByCityId(cityId).stream()
                 .map(this::mapToResponse)
@@ -265,6 +279,7 @@ public class ShowServiceImpl implements ShowService {
     }
 
     @Override
+    @Cacheable(value = "shows", key = "'movie:' + #movieId + ':city:' + #cityId")
     public List<ShowResponse> getShowsByMovieAndCity(Long movieId, Long cityId) {
         return showRepository.findByMovieAndCity(movieId, cityId).stream()
                 .map(this::mapToResponse)
@@ -279,6 +294,7 @@ public class ShowServiceImpl implements ShowService {
     }
 
     @Override
+    @Cacheable(value = "shows", key = "'active'")
     public List<ShowResponse> getActiveShows() {
         return showRepository.findByIsActiveTrue().stream()
                 .map(this::mapToResponse)
@@ -286,6 +302,7 @@ public class ShowServiceImpl implements ShowService {
     }
 
     @Override
+    @Cacheable(value = "showSeats", key = "#showId")
     public List<ShowSeatResponse> getShowSeats(Long showId) {
         if (!showRepository.existsById(showId)) {
             throw new ResourceNotFoundException("Show not found with id: " + showId);
