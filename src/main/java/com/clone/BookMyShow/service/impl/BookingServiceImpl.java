@@ -13,6 +13,7 @@ import com.clone.BookMyShow.service.BookingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -93,6 +94,8 @@ public class BookingServiceImpl implements BookingService {
         Booking booking = bookingRepository.findByIdWithHierarchy(bookingId)
                 .orElseThrow(() -> new ResourceNotFoundException("Booking not found with id: " + bookingId));
 
+        validateBookingOwnership(booking);
+
         if (booking.getShowSeats() == null || booking.getShowSeats().isEmpty()) {
             throw new IllegalStateException("Cannot confirm booking because no seats are assigned.");
         }
@@ -124,6 +127,7 @@ public class BookingServiceImpl implements BookingService {
     public BookingResponse getBookingById(Long id) {
         Booking booking = bookingRepository.findByIdWithHierarchy(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Booking not found with id: " + id));
+        validateBookingOwnership(booking);
         return mapToResponse(booking);
     }
 
@@ -138,8 +142,10 @@ public class BookingServiceImpl implements BookingService {
     @Transactional
     @CacheEvict(value = "showSeats", allEntries = true)
     public void cancelBooking(Long id) {
-        Booking booking = bookingRepository.findById(id)
+        Booking booking = bookingRepository.findByIdWithHierarchy(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Booking not found with id: " + id));
+
+        validateBookingOwnership(booking);
 
         if (booking.getStatus() == BookingStatus.CANCELLED || booking.getStatus()== BookingStatus.EXPIRED) {
             throw new IllegalStateException("Booking is already cancelled or expired");
@@ -171,5 +177,15 @@ public class BookingServiceImpl implements BookingService {
                 .status(booking.getStatus())
                 .bookingTime(booking.getBookingTime())
                 .build();
+    }
+
+    private void validateBookingOwnership(Booking booking) {
+        CustomUserDetails currentUser = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        boolean isAdmin = currentUser.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+        
+        if (!isAdmin && !booking.getUser().getId().equals(currentUser.getId())) {
+            throw new AccessDeniedException("You do not have permission to access this booking.");
+        }
     }
 }
