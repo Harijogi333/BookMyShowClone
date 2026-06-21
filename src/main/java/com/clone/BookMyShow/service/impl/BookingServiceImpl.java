@@ -11,6 +11,7 @@ import com.clone.BookMyShow.repository.UserRepository;
 import com.clone.BookMyShow.security.CustomUserDetails;
 import com.clone.BookMyShow.service.BookingService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -32,6 +33,7 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     @Transactional
+    @CacheEvict(value = "showSeats", allEntries = true)
     public BookingResponse createBooking(BookingRequest bookingRequest) {
         // 1. Get Authenticated User
         CustomUserDetails currentUser = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -87,6 +89,7 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     @Transactional
+    @CacheEvict(value = "showSeats", allEntries = true)
     public BookingResponse confirmBooking(Long bookingId) {
         Booking booking = bookingRepository.findByIdWithHierarchy(bookingId)
                 .orElseThrow(() -> new ResourceNotFoundException("Booking not found with id: " + bookingId));
@@ -137,6 +140,7 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     @Transactional
+    @CacheEvict(value = "showSeats", allEntries = true)
     public void cancelBooking(Long id) {
         Booking booking = bookingRepository.findByIdWithHierarchy(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Booking not found with id: " + id));

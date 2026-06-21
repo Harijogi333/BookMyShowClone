@@ -8,6 +8,9 @@ import com.clone.BookMyShow.exception.ResourceNotFoundException;
 import com.clone.BookMyShow.repository.CityRepository;
 import com.clone.BookMyShow.service.CityService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -20,6 +23,7 @@ public class CityServiceImpl implements CityService {
     private final CityRepository cityRepository;
 
     @Override
+    @CacheEvict(value = "cities", allEntries = true)
     public CityResponse addCity(CityRequest cityRequest) {
         if (cityRepository.existsByNameIgnoreCase(cityRequest.getName())) {
             throw new ResourceAlreadyExistsException("City with name '" + cityRequest.getName() + "' already exists.");
@@ -32,6 +36,7 @@ public class CityServiceImpl implements CityService {
     }
 
     @Override
+    @CacheEvict(value = "cities", allEntries = true)
     public CityResponse updateCity(Long id, CityRequest cityRequest) {
         City city = cityRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("City not found with id: " + id));
@@ -49,6 +54,7 @@ public class CityServiceImpl implements CityService {
     }
 
     @Override
+    @CacheEvict(value = "cities", allEntries = true)
     public void deleteCity(Long id) {
         City city = cityRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("City not found with id: " + id));
@@ -57,6 +63,7 @@ public class CityServiceImpl implements CityService {
     }
 
     @Override
+    @Cacheable(value = "cities", key = "#id")
     public CityResponse getCityById(Long id) {
         City city = cityRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("City not found with id: " + id));
@@ -64,6 +71,7 @@ public class CityServiceImpl implements CityService {
     }
 
     @Override
+    @Cacheable(value = "cities", key = "'all'")
     public List<CityResponse> getAllCities() {
         return cityRepository.findAll().stream()
                 .map(this::mapToResponse)
@@ -71,6 +79,7 @@ public class CityServiceImpl implements CityService {
     }
 
     @Override
+    @Cacheable(value = "cities", key = "'active'")
     public List<CityResponse> getActiveCities() {
         return cityRepository.findAll().stream()
                 .filter(City::getIsActive)

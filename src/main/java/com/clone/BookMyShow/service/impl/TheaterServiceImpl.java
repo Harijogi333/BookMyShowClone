@@ -14,6 +14,8 @@ import com.clone.BookMyShow.repository.UserRepository;
 import com.clone.BookMyShow.security.CustomUserDetails;
 import com.clone.BookMyShow.service.TheaterService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -30,6 +32,7 @@ public class TheaterServiceImpl implements TheaterService {
     private final UserRepository userRepository;
 
     @Override
+    @CacheEvict(value = "theaters", allEntries = true)
     public TheaterResponse addTheater(TheaterRequest theaterRequest) {
         City city = cityRepository.findById(theaterRequest.getCityId())
                 .orElseThrow(() -> new ResourceNotFoundException("City not found with id: " + theaterRequest.getCityId()));
@@ -63,6 +66,7 @@ public class TheaterServiceImpl implements TheaterService {
     }
 
     @Override
+    @CacheEvict(value = "theaters", allEntries = true)
     public TheaterResponse updateTheater(Long id, TheaterRequest theaterRequest) {
         Theater theater = theaterRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Theater not found with id: " + id));
@@ -105,6 +109,7 @@ public class TheaterServiceImpl implements TheaterService {
     }
 
     @Override
+    @CacheEvict(value = "theaters", allEntries = true)
     public void deleteTheater(Long id) {
         Theater theater = theaterRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Theater not found with id: " + id));
@@ -130,6 +135,7 @@ public class TheaterServiceImpl implements TheaterService {
     }
 
     @Override
+    @Cacheable(value = "theaters", key = "#id")
     public TheaterResponse getTheaterById(Long id) {
         Theater theater = theaterRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Theater not found with id: " + id));
@@ -137,6 +143,7 @@ public class TheaterServiceImpl implements TheaterService {
     }
 
     @Override
+    @Cacheable(value = "theaters", key = "'all'")
     public List<TheaterResponse> getAllTheaters() {
         return theaterRepository.findAllActiveTheaters().stream()
                 .map(this::mapToResponse)
@@ -144,6 +151,7 @@ public class TheaterServiceImpl implements TheaterService {
     }
 
     @Override
+    @Cacheable(value = "theaters", key = "'city:' + #cityId")
     public List<TheaterResponse> getTheatersByCity(Long cityId) {
         return theaterRepository.findActiveTheatersByCityId(cityId).stream()
                 .map(this::mapToResponse)
