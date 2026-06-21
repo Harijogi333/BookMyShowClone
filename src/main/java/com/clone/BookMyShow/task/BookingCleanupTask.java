@@ -27,13 +27,13 @@ public class BookingCleanupTask {
     private final ApplicationEventPublisher eventPublisher;
 
     // TTL for seat blocks (e.g., 5 minutes)
-    private static final int TTL_MINUTES = 2;
+    private static final int TTL_MINUTES = 5;
 
     /**
      * Scheduled task to clean up expired PENDING bookings and their associated BLOCKED seats.
      * Runs every minute.
      */
-    @Scheduled(fixedRate = 60000) // 1 minute
+    @Scheduled(fixedRate = 300000) // 5 minutes
     @Transactional
     public void cleanupExpiredBookings() {
         LocalDateTime expiryTime = LocalDateTime.now().minusMinutes(TTL_MINUTES);

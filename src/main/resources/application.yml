@@ -19,6 +19,19 @@ spring:
         format_sql: true
     database-platform: org.hibernate.dialect.PostgreSQLDialect
 
+  # Redis Configuration
+  data:
+    redis:
+      host: localhost
+      port: 6379
+  
+  # Cache Configuration (TTL)
+  cache:
+    type: redis
+    redis:
+      time-to-live: 3600000 # 1 hour in milliseconds
+      cache-null-values: false
+
 # Logging Configuration
 logging:
   level:
@@ -29,3 +42,9 @@ logging:
           descriptor:
             sql:
               BasicBinder: TRACE
+
+stripe:
+    api:
+      secret-key: sk_test_51TkFtA5OXH8h9boe0Y8sCP1WTUFP8AVlRUm6jmirQdVZg6Or3MklWewb124hmUbKQotWQgaizEVrV20pT5cIjrSh00amzOJ2dJ
+      webhook-secret: whsec_d1148140ecd1f947613c595565b25037bdd22f5b8692c83fbc7b0fc7cc354511
+      publishable-key: pk_test_51TkFtA5OXH8h9boe7vHuQ9kTLc9eX4unDmnzREBMX1LBll6iRVmzCAzm6Zpxkn86wrzlklnhK4uRyd8ngoyinps900SYFBfVuS

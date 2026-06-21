@@ -31,7 +31,6 @@ public class ShowServiceImpl implements ShowService {
     private final ScreenRepository screenRepository;
     private final SeatRepository seatRepository;
     private final ShowSeatRepository showSeatRepository;
-    private final TheaterRepository theaterRepository;
 
     @Override
     @Transactional
