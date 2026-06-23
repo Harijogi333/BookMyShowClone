@@ -6,13 +6,15 @@ import com.clone.BookMyShow.security.CustomUserDetails;
 import com.clone.BookMyShow.service.BookingService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/bookings")
@@ -41,9 +43,10 @@ public class BookingController {
 
     @GetMapping("/my-bookings")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN', 'THEATER_OWNER')")
-    public ResponseEntity<List<BookingResponse>> getMyBookings() {
+    public ResponseEntity<Page<BookingResponse>> getMyBookings(
+            @PageableDefault(size = 10, sort = "bookingTime", direction = Sort.Direction.DESC) Pageable pageable) {
         CustomUserDetails currentUser = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return ResponseEntity.ok(bookingService.getUserBookings(currentUser.getId()));
+        return ResponseEntity.ok(bookingService.getUserBookings(currentUser.getId(), pageable));
     }
 
     @PostMapping("/{id}/cancel")

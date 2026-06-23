@@ -16,7 +16,7 @@ public class CityResponse implements Serializable {
     private static final long serialVersionUID = 1L;
     private Long id;
     private String name;
-    private boolean isActive;
+    private Boolean isActive;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

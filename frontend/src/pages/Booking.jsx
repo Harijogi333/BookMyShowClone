@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import SeatGrid from '../components/SeatGrid';
+import PaymentModal from '../components/PaymentModal';
 
 export default function Booking() {
   const { showId } = useParams();
@@ -10,12 +11,15 @@ export default function Booking() {
   const [selectedSeats, setSelectedSeats] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [createdBooking, setCreatedBooking] = useState(null);
+  const [showPayment, setShowPayment] = useState(false);
 
   useEffect(() => {
     api.get(`/shows/${showId}`).then((res) => setShow(res.data)).catch(() => {});
   }, [showId]);
 
   const handleSeatSelect = (seat) => {
+    if (createdBooking) return;
     setSelectedSeats((prev) => {
       const exists = prev.find((s) => s.id === seat.id);
       if (exists) return prev.filter((s) => s.id !== seat.id);
@@ -30,15 +34,26 @@ export default function Booking() {
     setLoading(true);
     setError('');
     try {
-      await api.post('/bookings', {
+      const res = await api.post('/bookings', {
         showSeatIds: selectedSeats.map((s) => s.id),
       });
-      navigate('/my-bookings');
+      setCreatedBooking(res.data);
+      setShowPayment(true);
     } catch (err) {
       setError(err.response?.data?.message || 'Booking failed. Some seats may already be taken.');
     } finally {
       setLoading(false);
     }
+  };
+
+  const handlePaymentSuccess = () => {
+    setShowPayment(false);
+    navigate('/my-bookings');
+  };
+
+  const handlePaymentClose = () => {
+    setShowPayment(false);
+    setCreatedBooking(null);
   };
 
   if (!show) return <div style={centerStyle}>Loading...</div>;
@@ -53,7 +68,7 @@ export default function Booking() {
         <SeatGrid showId={showId} onSelect={handleSeatSelect} selectedSeatIds={selectedSeats.map((s) => s.id)} />
       </div>
 
-      {selectedSeats.length > 0 && (
+      {selectedSeats.length > 0 && !createdBooking && (
         <div style={summaryStyle}>
           <p><strong>Selected Seats:</strong> {selectedSeats.map((s) => s.seatNumber).join(', ')}</p>
           <p><strong>Total:</strong> ₹{totalPrice}</p>
@@ -62,6 +77,14 @@ export default function Booking() {
             {loading ? 'Booking...' : 'Confirm Booking'}
           </button>
         </div>
+      )}
+
+      {showPayment && createdBooking && (
+        <PaymentModal
+          booking={createdBooking}
+          onClose={handlePaymentClose}
+          onSuccess={handlePaymentSuccess}
+        />
       )}
     </div>
   );

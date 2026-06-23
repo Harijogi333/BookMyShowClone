@@ -312,6 +312,14 @@ public class ShowServiceImpl implements ShowService {
     }
 
     private ShowSeatResponse mapToShowSeatResponse(ShowSeat showSeat) {
+        boolean blockedByMe = false;
+        if (showSeat.getStatus() == ShowSeatStatus.BLOCKED && showSeat.getBooking() != null) {
+            try {
+                CustomUserDetails currentUser = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+                blockedByMe = showSeat.getBooking().getUser().getId().equals(currentUser.getId());
+            } catch (Exception ignored) {}
+        }
+
         return ShowSeatResponse.builder()
                 .id(showSeat.getId())
                 .seatId(showSeat.getSeat().getId())
@@ -319,6 +327,7 @@ public class ShowServiceImpl implements ShowService {
                 .seatType(showSeat.getSeat().getSeatType())
                 .price(showSeat.getPrice())
                 .status(showSeat.getStatus())
+                .blockedByCurrentUser(blockedByMe)
                 .build();
     }
 

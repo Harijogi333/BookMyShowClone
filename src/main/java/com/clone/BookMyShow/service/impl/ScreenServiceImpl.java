@@ -124,7 +124,7 @@ public class ScreenServiceImpl implements ScreenService {
 
     @Override
     public List<ScreenResponse> getScreensByTheater(Long theaterId) {
-        return screenRepository.findActiveScreensByTheaterId(theaterId).stream()
+        return screenRepository.findScreensByTheaterId(theaterId).stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }

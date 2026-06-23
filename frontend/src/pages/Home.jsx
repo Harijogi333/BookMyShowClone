@@ -6,6 +6,7 @@ export default function Home() {
   const [movies, setMovies] = useState([]);
   const [cities, setCities] = useState([]);
   const [selectedCity, setSelectedCity] = useState('');
+  const [visibleMovieIds, setVisibleMovieIds] = useState(null);
 
   useEffect(() => {
     api.get('/cities/active').then((res) => setCities(res.data)).catch(() => {});
@@ -14,6 +15,19 @@ export default function Home() {
   useEffect(() => {
     api.get('/movies/active').then((res) => setMovies(res.data)).catch(() => {});
   }, []);
+
+  useEffect(() => {
+    if (selectedCity) {
+      api.get(`/shows/city/${selectedCity}`).then((res) => {
+        const ids = [...new Set(res.data.map((s) => s.movieId))];
+        setVisibleMovieIds(ids);
+      }).catch(() => setVisibleMovieIds([]));
+    } else {
+      setVisibleMovieIds(null);
+    }
+  }, [selectedCity]);
+
+  const filteredMovies = visibleMovieIds ? movies.filter((m) => visibleMovieIds.includes(m.id)) : movies;
 
   return (
     <div style={{ padding: 24 }}>
@@ -26,9 +40,13 @@ export default function Home() {
         </select>
       )}
 
+      {selectedCity && filteredMovies.length === 0 && movies.length > 0 && (
+        <p style={{ color: '#666', marginTop: 20 }}>No movies currently playing in this city.</p>
+      )}
+
       <div style={gridStyle}>
-        {movies.map((movie) => (
-          <Link to={`/movies/${movie.id}${selectedCity ? `?cityId=${selectedCity}` : ''}`} key={movie.id} style={cardStyle}>
+        {filteredMovies.map((movie) => (
+          <Link to={`/movies/${movie.id}?cityId=${selectedCity || ''}`} key={movie.id} style={cardStyle}>
             <div style={imgPlaceholder}>{movie.title[0]}</div>
             <div style={cardBody}>
               <h3>{movie.title}</h3>

@@ -30,13 +30,15 @@ export default function SeatGrid({ showId, onSelect, selectedSeatIds }) {
   });
 
   const handleSeatClick = (seat) => {
-    if (seat.status !== 'AVAILABLE') return;
-    onSelect(seat);
+    if (seat.status === 'AVAILABLE' || seat.blockedByCurrentUser) {
+      onSelect(seat);
+    }
   };
 
   const getSeatStyle = (seat) => {
     const isSelected = selectedSeatIds.includes(seat.id);
     if (isSelected) return { ...baseSeat, background: '#28a745', color: '#fff', cursor: 'pointer' };
+    if (seat.blockedByCurrentUser) return { ...baseSeat, background: '#ffc107', color: '#333', cursor: 'pointer', border: '2px solid #ff9800' };
     if (seat.status === 'BOOKED' || seat.status === 'BLOCKED') return { ...baseSeat, background: '#ddd', color: '#999', cursor: 'not-allowed' };
     if (seat.status === 'CANCELLED') return { ...baseSeat, background: '#fff3cd', color: '#856404', cursor: 'not-allowed' };
     return { ...baseSeat, background: '#fff', border: '2px solid #e50914', cursor: 'pointer' };
@@ -44,9 +46,10 @@ export default function SeatGrid({ showId, onSelect, selectedSeatIds }) {
 
   return (
     <div>
-      <div style={{ display: 'flex', gap: 16, marginBottom: 16, justifyContent: 'center' }}>
+      <div style={{ display: 'flex', gap: 16, marginBottom: 16, justifyContent: 'center', flexWrap: 'wrap' }}>
         <span><span style={legendAvailable} /> Available</span>
         <span><span style={legendSelected} /> Selected</span>
+        <span><span style={legendPending} /> Your Pending</span>
         <span><span style={legendBooked} /> Booked</span>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
@@ -81,4 +84,5 @@ const screenStyle = {
 };
 const legendAvailable = { display: 'inline-block', width: 16, height: 16, background: '#fff', border: '2px solid #e50914', borderRadius: 3, marginRight: 4, verticalAlign: 'middle' };
 const legendSelected = { display: 'inline-block', width: 16, height: 16, background: '#28a745', borderRadius: 3, marginRight: 4, verticalAlign: 'middle' };
+const legendPending = { display: 'inline-block', width: 16, height: 16, background: '#ffc107', border: '2px solid #ff9800', borderRadius: 3, marginRight: 4, verticalAlign: 'middle' };
 const legendBooked = { display: 'inline-block', width: 16, height: 16, background: '#ddd', borderRadius: 3, marginRight: 4, verticalAlign: 'middle' };

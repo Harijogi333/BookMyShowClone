@@ -14,18 +14,20 @@ export default function MovieDetails() {
   const cityId = searchParams.get('cityId');
   const [movie, setMovie] = useState(null);
   const [shows, setShows] = useState([]);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    api.get(`/movies/${movieId}`).then((res) => setMovie(res.data)).catch(() => {});
+    api.get(`/movies/${movieId}`).then((res) => setMovie(res.data)).catch(() => setError('Failed to load movie details. Is the backend running?'));
   }, [movieId]);
 
   useEffect(() => {
     const url = cityId
       ? `/shows/movie/${movieId}/city/${cityId}`
       : `/shows/movie/${movieId}`;
-    api.get(url).then((res) => setShows(res.data)).catch(() => {});
+    api.get(url).then((res) => setShows(res.data)).catch(() => setShows([]));
   }, [movieId, cityId]);
 
+  if (error) return <div style={centerStyle}><p>{error}</p><p><a href="/" style={{ color: '#e50914' }}>Go back home</a></p></div>;
   if (!movie) return <div style={centerStyle}>Loading...</div>;
 
   return (

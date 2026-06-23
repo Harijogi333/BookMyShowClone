@@ -11,13 +11,17 @@ public class PaymentRequest {
     private Long bookingId;
 
     @NotBlank(message = "Payment method is required")
-    private String paymentMethod; // e.g. "UPI", "CARD", "NET_BANKING"
+    private String paymentMethod;
 
     @NotNull(message = "Amount is required")
     private Double amount;
 
-    // Optional fields for dummy card payment mock behavior
+    @NotNull(message = "card number is mandatory")
     private String cardNumber;
+
+    @NotNull(message = "expiry date is required")
     private String expiryDate;
+
+    @NotNull(message = "cvv is required")
     private String cvv;
 }

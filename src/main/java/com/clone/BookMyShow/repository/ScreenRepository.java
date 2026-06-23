@@ -17,8 +17,8 @@ public interface ScreenRepository extends JpaRepository<Screen, Long> {
            "WHERE s.id = :id")
     java.util.Optional<Screen> findByIdWithHierarchy(@org.springframework.data.repository.query.Param("id") Long id);
 
-    @Query("SELECT s FROM Screen s JOIN s.theater t JOIN t.city c WHERE t.id = :theaterId AND s.isActive = true AND t.isActive = true AND c.isActive = true")
-    List<Screen> findActiveScreensByTheaterId(Long theaterId);
+    @Query("SELECT s FROM Screen s JOIN s.theater t JOIN t.city c WHERE t.id = :theaterId  AND t.isActive = true AND c.isActive = true")
+    List<Screen> findScreensByTheaterId(Long theaterId);
 
     List<Screen> findByTheaterId(Long theaterId);
     boolean existsByNameIgnoreCaseAndTheaterId(String name, Long theaterId);

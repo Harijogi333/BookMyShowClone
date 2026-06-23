@@ -44,4 +44,7 @@ public interface ShowSeatRepository extends JpaRepository<ShowSeat, Long> {
     void updateStatusByShowId(@Param("showId") Long showId, 
                              @Param("status") ShowSeatStatus status, 
                              @Param("currentStatuses") Collection<ShowSeatStatus> currentStatuses);
+
+    @Query("SELECT ss FROM ShowSeat ss JOIN FETCH ss.seat WHERE ss.booking.id IN :bookingIds")
+    List<ShowSeat> findByBookingIdInWithSeat(@Param("bookingIds") List<Long> bookingIds);
     }

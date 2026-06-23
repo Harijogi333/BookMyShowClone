@@ -13,6 +13,8 @@ import com.clone.BookMyShow.service.BookingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -20,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -53,7 +56,7 @@ public class BookingServiceImpl implements BookingService {
             if (!ss.getShow().getId().equals(show.getId())) {
                 throw new IllegalArgumentException("All seats must belong to the same show");
             }
-            if (ss.getStatus() != ShowSeatStatus.AVAILABLE) {
+            if (ss.getStatus() != ShowSeatStatus.AVAILABLE && !(ss.getStatus()==ShowSeatStatus.BLOCKED && ss.getBooking().getUser().getId()==user.getId())) {
                 throw new IllegalStateException("Seat " + ss.getSeat().getSeatNumber() + " is no longer available");
             }
         }
@@ -132,10 +135,21 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public List<BookingResponse> getUserBookings(Long userId) {
-        return bookingRepository.findByUserIdWithHierarchy(userId).stream()
-                .map(this::mapToResponse)
-                .collect(Collectors.toList());
+    public Page<BookingResponse> getUserBookings(Long userId, Pageable pageable) {
+        Page<Booking> bookingPage = bookingRepository.findPaginatedByUserId(userId, pageable);
+
+        if (bookingPage.hasContent()) {
+            List<Long> bookingIds = bookingPage.getContent().stream()
+                    .map(Booking::getId)
+                    .collect(Collectors.toList());
+            List<ShowSeat> allShowSeats = showSeatRepository.findByBookingIdInWithSeat(bookingIds);
+            Map<Long, List<ShowSeat>> seatsByBooking = allShowSeats.stream()
+                    .collect(Collectors.groupingBy(ss -> ss.getBooking().getId()));
+            bookingPage.getContent().forEach(b ->
+                    b.setShowSeats(seatsByBooking.getOrDefault(b.getId(), List.of())));
+        }
+
+        return bookingPage.map(this::mapToResponse);
     }
 
     @Override

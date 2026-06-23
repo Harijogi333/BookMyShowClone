@@ -7,6 +7,8 @@ import com.clone.BookMyShow.entity.Booking;
 import com.clone.BookMyShow.entity.BookingStatus;
 import com.clone.BookMyShow.entity.Payment;
 import com.clone.BookMyShow.entity.PaymentStatus;
+import java.util.List;
+import java.util.Optional;
 import com.clone.BookMyShow.exception.ResourceNotFoundException;
 import com.clone.BookMyShow.repository.BookingRepository;
 import com.clone.BookMyShow.repository.PaymentRepository;
@@ -45,18 +47,35 @@ public class PaymentServiceImpl implements PaymentService {
             throw new IllegalArgumentException("Payment amount does not match booking total price.");
         }
 
+        if (!"CARD".equalsIgnoreCase(request.getPaymentMethod())) {
+            throw new IllegalArgumentException("Only CARD payment method is supported.");
+        }
+
+        List<Payment> existingPayments = paymentRepository.findByBookingId(booking.getId());
+        Optional<Payment> pendingPayment = existingPayments.stream()
+                .filter(p -> p.getStatus() == PaymentStatus.PENDING)
+                .findFirst();
+        if (pendingPayment.isPresent()) {
+            Payment existing = pendingPayment.get();
+            return PaymentResponse.builder()
+                    .paymentId(existing.getId())
+                    .bookingId(booking.getId())
+                    .transactionId(existing.getTransactionId())
+                    .amount(existing.getAmount())
+                    .status(PaymentStatus.PENDING)
+                    .paymentMethod(existing.getPaymentMethod())
+                    .paymentTime(existing.getPaymentTime())
+                    .message("A pending payment already exists for this booking.")
+                    .build();
+        }
+
         try {
             long amountInCents = Math.round(request.getAmount() * 100);
             PaymentIntentCreateParams params = PaymentIntentCreateParams.builder()
                     .setAmount(amountInCents)
-                    .setCurrency("inr") // e.g. "usd" or "inr"
+                    .setCurrency("inr")
                     .putMetadata("booking_id", String.valueOf(booking.getId()))
-                    .setAutomaticPaymentMethods(
-                            PaymentIntentCreateParams.AutomaticPaymentMethods.builder()
-                                    .setEnabled(true)
-                                    .setAllowRedirects(PaymentIntentCreateParams.AutomaticPaymentMethods.AllowRedirects.NEVER)
-                                    .build()
-                    )
+                    .addPaymentMethodType("card")
                     .build();
 
             PaymentIntent intent = PaymentIntent.create(params);
@@ -93,8 +112,30 @@ public class PaymentServiceImpl implements PaymentService {
         Payment payment = paymentRepository.findById(request.getPaymentId())
                 .orElseThrow(() -> new ResourceNotFoundException("Payment record not found with id: " + request.getPaymentId()));
 
+        if (payment.getStatus() == PaymentStatus.SUCCESS) {
+            return PaymentResponse.builder()
+                    .paymentId(payment.getId())
+                    .bookingId(payment.getBooking().getId())
+                    .transactionId(payment.getTransactionId())
+                    .amount(payment.getAmount())
+                    .status(PaymentStatus.SUCCESS)
+                    .paymentMethod(payment.getPaymentMethod())
+                    .paymentTime(payment.getPaymentTime())
+                    .message("Payment completed successfully.")
+                    .build();
+        }
+
         if (payment.getStatus() != PaymentStatus.PENDING) {
-            throw new IllegalStateException("Payment is already completed. Current status: " + payment.getStatus());
+            return PaymentResponse.builder()
+                    .paymentId(payment.getId())
+                    .bookingId(payment.getBooking().getId())
+                    .transactionId(payment.getTransactionId())
+                    .amount(payment.getAmount())
+                    .status(payment.getStatus())
+                    .paymentMethod(payment.getPaymentMethod())
+                    .paymentTime(payment.getPaymentTime())
+                    .message("Payment is already " + payment.getStatus().name().toLowerCase() + ".")
+                    .build();
         }
 
         try {
@@ -108,10 +149,12 @@ public class PaymentServiceImpl implements PaymentService {
                 finalStatus = PaymentStatus.SUCCESS;
                 message = "Payment completed successfully.";
                 bookingService.confirmBooking(payment.getBooking().getId());
+            } else if ("processing".equals(stripeStatus)) {
+                finalStatus = PaymentStatus.PENDING;
+                message = "Payment is still processing.";
             } else {
                 finalStatus = PaymentStatus.FAILED;
                 message = "Payment failed on Stripe. Status: " + stripeStatus;
-                // Cancel booking and release seats immediately
                 bookingService.cancelBooking(payment.getBooking().getId());
             }
 

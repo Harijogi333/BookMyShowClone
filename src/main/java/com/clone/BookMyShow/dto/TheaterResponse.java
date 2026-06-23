@@ -5,13 +5,15 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class TheaterResponse {
+public class TheaterResponse implements Serializable {
+    private static final long serialVersionUID = 1L;
     private Long id;
     private String name;
     private String address;
@@ -19,7 +21,7 @@ public class TheaterResponse {
     private String cityName;
     private Long ownerId;
     private String ownerName;
-    private boolean isActive;
+    private Boolean isActive;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

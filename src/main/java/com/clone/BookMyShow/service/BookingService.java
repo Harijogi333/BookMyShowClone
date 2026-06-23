@@ -2,13 +2,13 @@ package com.clone.BookMyShow.service;
 
 import com.clone.BookMyShow.dto.BookingRequest;
 import com.clone.BookMyShow.dto.BookingResponse;
-
-import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface BookingService {
     BookingResponse createBooking(BookingRequest bookingRequest);
     BookingResponse confirmBooking(Long bookingId);
     BookingResponse getBookingById(Long id);
-    List<BookingResponse> getUserBookings(Long userId);
+    Page<BookingResponse> getUserBookings(Long userId, Pageable pageable);
     void cancelBooking(Long id);
 }

@@ -16,7 +16,7 @@ public class ScreenResponse {
     private String name;
     private Long theaterId;
     private String theaterName;
-    private boolean isActive;
+    private Boolean isActive;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

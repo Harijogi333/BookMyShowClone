@@ -13,7 +13,7 @@ public interface TheaterRepository extends JpaRepository<Theater, Long> {
     @Query("SELECT t FROM Theater t JOIN t.city c WHERE c.id = :cityId AND t.isActive = true AND c.isActive = true")
     List<Theater> findActiveTheatersByCityId(Long cityId);
 
-    @Query("SELECT t FROM Theater t JOIN t.city c WHERE t.isActive = true AND c.isActive = true")
+    @Query("SELECT t FROM Theater t JOIN t.city c WHERE c.isActive = true")
     List<Theater> findAllActiveTheaters();
 
     List<Theater> findByCityId(Long cityId);
