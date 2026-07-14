@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import com.clone.BookMyShow.dto.ShowSeatResponse;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/shows")
@@ -55,7 +56,7 @@ public class ShowController {
     }
 
     @GetMapping("/movie/{movieId}")
-    public ResponseEntity<List<ShowResponse>> getShowsByMovie(@PathVariable Long movieId) {
+    public ResponseEntity<Map<Long,List<ShowResponse>>> getShowsByMovie(@PathVariable Long movieId) {
         return ResponseEntity.ok(showService.getShowsByMovie(movieId));
     }
 
@@ -65,7 +66,7 @@ public class ShowController {
     }
 
     @GetMapping("/movie/{movieId}/city/{cityId}")
-    public ResponseEntity<List<ShowResponse>> getShowsByMovieAndCity(
+    public ResponseEntity<Map<Long,List<ShowResponse>>> getShowsByMovieAndCity(
             @PathVariable Long movieId, 
             @PathVariable Long cityId) {
         return ResponseEntity.ok(showService.getShowsByMovieAndCity(movieId, cityId));
@@ -76,6 +77,14 @@ public class ShowController {
             @PathVariable Long movieId, 
             @PathVariable @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) java.time.LocalDate date) {
         return ResponseEntity.ok(showService.getShowsByMovieAndDate(movieId, date));
+    }
+
+    @GetMapping("/movie/{movieId}/city/{cityId}/date/{date}")
+    public ResponseEntity<Map<Long,List<ShowResponse>>> getShowsByMovieAndCityAndDate(
+            @PathVariable Long movieId,
+            @PathVariable Long cityId,
+            @PathVariable @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) java.time.LocalDate date) {
+        return ResponseEntity.ok(showService.getShowsByMovieAndCityAndDate(movieId, cityId, date));
     }
 
     @GetMapping("/active")

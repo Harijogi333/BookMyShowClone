@@ -113,6 +113,21 @@ public interface ShowRepository extends JpaRepository<Show, Long> {
            "AND m.isActive = true")
     List<Show> findByMovieAndDate(@Param("movieId") Long movieId, @Param("date") LocalDateTime date);
 
+    @Query("SELECT s FROM Show s " +
+           "JOIN FETCH s.screen sc " +
+           "JOIN FETCH sc.theater t " +
+           "JOIN FETCH t.city c " +
+           "JOIN FETCH s.movie m " +
+           "WHERE s.movie.id = :movieId " +
+           "AND s.screen.theater.city.id = :cityId " +
+           "AND CAST(s.startTime AS date) = CAST(:date AS date) " +
+           "AND s.isActive = true " +
+           "AND sc.isActive = true " +
+           "AND t.isActive = true " +
+           "AND c.isActive = true " +
+           "AND m.isActive = true")
+    List<Show> findByMovieAndCityAndDate(@Param("movieId") Long movieId, @Param("cityId") Long cityId, @Param("date") LocalDateTime date);
+
     @Query("SELECT COUNT(s) > 0 FROM Show s WHERE s.screen.id = :screenId " +
            "AND s.isActive = true " +
            "AND (:id IS NULL OR s.id != :id) " +

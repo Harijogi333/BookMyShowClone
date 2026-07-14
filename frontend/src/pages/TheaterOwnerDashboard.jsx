@@ -1,15 +1,22 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import api from '../services/api';
 
 const inputStyle = { width: '100%', padding: '8px 10px', border: '1px solid #ddd', borderRadius: 4, fontSize: 13, boxSizing: 'border-box' };
 const btnStyle = { padding: '6px 16px', border: 'none', borderRadius: 4, cursor: 'pointer', fontWeight: 'bold', fontSize: 13 };
 const cardStyle = { background: '#fff', padding: 16, borderRadius: 8, boxShadow: '0 1px 6px rgba(0,0,0,0.1)' };
+const emptyStyle = { fontSize: 13, color: '#dc3545', marginTop: 4 };
 
-function FormField({ label, name, value, onChange, type = 'text', required = false }) {
+function FormField({ label, name, value, onChange, type = 'text', required = false, options }) {
   return (
     <div style={{ marginBottom: 10 }}>
       <label style={{ display: 'block', fontSize: 13, marginBottom: 2, fontWeight: 'bold' }}>{label}</label>
-      <input type={type} name={name} value={value} onChange={onChange} required={required} style={inputStyle} />
+      {type === 'select' ? (
+        <select name={name} value={value} onChange={onChange} required={required} style={inputStyle}>
+          {options.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
+        </select>
+      ) : (
+        <input type={type} name={name} value={value} onChange={onChange} required={required} style={inputStyle} />
+      )}
     </div>
   );
 }
@@ -21,7 +28,15 @@ export default function TheaterOwnerDashboard() {
   const [shows, setShows] = useState([]);
   const [seats, setSeats] = useState([]);
   const [selectedTheater, setSelectedTheater] = useState('');
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState(null);
+  const msgRef = useRef(null);
+  useEffect(() => {
+    if (message) {
+      msgRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const timer = setTimeout(() => setMessage(null), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [message]);
 
   const [screenForm, setScreenForm] = useState({ name: '', isActive: true });
   const [editingScreen, setEditingScreen] = useState(null);
@@ -34,9 +49,11 @@ export default function TheaterOwnerDashboard() {
   const [editingSeat, setEditingSeat] = useState(null);
   const [selectedScreenForSeats, setSelectedScreenForSeats] = useState('');
   const [bulkSeatCount, setBulkSeatCount] = useState('');
-  const [filter, setFilter] = useState('all');
+  const [bulkSeatPrefix, setBulkSeatPrefix] = useState('A');
+  const [bulkSeatType, setBulkSeatType] = useState('SILVER');
+  const [filter, setFilter] = useState('active');
 
-  useEffect(() => { setFilter('all'); }, [tab]);
+  useEffect(() => { setFilter('active'); }, [tab]);
 
   const filteredByStatus = (items) => {
     if (filter === 'all') return items;
@@ -58,15 +75,21 @@ export default function TheaterOwnerDashboard() {
   useEffect(() => {
     if (selectedTheater) {
       api.get(`/screens/theater/${selectedTheater}`).then((r) => setScreens(r.data)).catch(() => setScreens([]));
-      if (tab === 'shows') api.get(`/shows/theater/${selectedTheater}`).then((r) => setShows(r.data)).catch(() => setShows([]));
     } else {
       setScreens([]);
+    }
+  }, [selectedTheater]);
+
+  useEffect(() => {
+    if (selectedTheater && tab === 'shows') {
+      api.get(`/shows/theater/${selectedTheater}`).then((r) => setShows(r.data)).catch(() => setShows([]));
+    } else if (tab !== 'shows') {
       setShows([]);
     }
   }, [selectedTheater, tab]);
 
   useEffect(() => {
-    api.get('/movies').then((r) => setMovies(r.data)).catch(() => {});
+    api.get('/movies/active').then((r) => setMovies(r.data)).catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -76,6 +99,8 @@ export default function TheaterOwnerDashboard() {
       setSeats([]);
     }
   }, [selectedScreenForSeats]);
+
+  useEffect(() => { setMessage(null); }, [tab, selectedTheater, selectedScreenForSeats]);
 
   const refreshScreens = () => { if (selectedTheater) api.get(`/screens/theater/${selectedTheater}`).then((r) => setScreens(r.data)).catch(() => setScreens([])); };
   const refreshShows = () => { if (selectedTheater) api.get(`/shows/theater/${selectedTheater}`).then((r) => setShows(r.data)).catch(() => setShows([])); };
@@ -87,16 +112,16 @@ export default function TheaterOwnerDashboard() {
       const data = { ...screenForm, theaterId: Number(selectedTheater) };
       if (editingScreen) {
         await api.put(`/screens/${editingScreen.id}`, data);
-        setMessage('Screen updated!');
+        setMessage({ text: 'Screen updated!', type: 'success' });
         setEditingScreen(null);
       } else {
         await api.post('/screens/add', data);
-        setMessage('Screen added!');
+        setMessage({ text: 'Screen added!', type: 'success' });
       }
       setScreenForm({ name: '', isActive: true });
       refreshScreens();
     } catch (err) {
-      setMessage(err.response?.data?.message || 'Failed');
+      setMessage({ text: err.response?.data?.message || 'Failed', type: 'error' });
     }
   };
 
@@ -109,10 +134,10 @@ export default function TheaterOwnerDashboard() {
     if (!window.confirm('Delete this screen?')) return;
     try {
       await api.delete(`/screens/${id}`);
-      setMessage('Screen deleted!');
+      setMessage({ text: 'Screen deleted!', type: 'success' });
       refreshScreens();
     } catch (err) {
-      setMessage(err.response?.data?.message || 'Failed');
+      setMessage({ text: err.response?.data?.message || 'Failed', type: 'error' });
     }
   };
 
@@ -130,16 +155,16 @@ export default function TheaterOwnerDashboard() {
       };
       if (editingShow) {
         await api.put(`/shows/${editingShow.id}`, data);
-        setMessage('Show updated!');
+        setMessage({ text: 'Show updated!', type: 'success' });
         setEditingShow(null);
       } else {
         await api.post('/shows/add', data);
-        setMessage('Show added!');
+        setMessage({ text: 'Show added!', type: 'success' });
       }
       setShowForm({ movieId: '', screenId: '', startTime: '', isActive: true, seatTypePrices: { SILVER: '', GOLD: '', PLATINUM: '', RECLINER: '' } });
       refreshShows();
     } catch (err) {
-      setMessage(err.response?.data?.message || 'Failed');
+      setMessage({ text: err.response?.data?.message || 'Failed', type: 'error' });
     }
   };
 
@@ -158,10 +183,10 @@ export default function TheaterOwnerDashboard() {
     if (!window.confirm('Delete this show?')) return;
     try {
       await api.delete(`/shows/${id}`);
-      setMessage('Show deleted!');
+      setMessage({ text: 'Show deleted!', type: 'success' });
       refreshShows();
     } catch (err) {
-      setMessage(err.response?.data?.message || 'Failed');
+      setMessage({ text: err.response?.data?.message || 'Failed', type: 'error' });
     }
   };
 
@@ -171,16 +196,16 @@ export default function TheaterOwnerDashboard() {
       const data = { ...seatForm, screenId: Number(selectedScreenForSeats) };
       if (editingSeat) {
         await api.put(`/seats/${editingSeat.id}`, data);
-        setMessage('Seat updated!');
+        setMessage({ text: 'Seat updated!', type: 'success' });
         setEditingSeat(null);
       } else {
         await api.post('/seats/add', data);
-        setMessage('Seat added!');
+        setMessage({ text: 'Seat added!', type: 'success' });
       }
       setSeatForm({ seatNumber: '', seatType: 'SILVER', screenId: '', isActive: true });
       refreshSeats();
     } catch (err) {
-      setMessage(err.response?.data?.message || 'Failed');
+      setMessage({ text: err.response?.data?.message || 'Failed', type: 'error' });
     }
   };
 
@@ -191,16 +216,14 @@ export default function TheaterOwnerDashboard() {
       const existing = seats.length;
       const bulkData = [];
       for (let i = 1; i <= count; i++) {
-        const seatNum = existing + i;
-        const seatType = seatNum <= count * 0.5 ? 'SILVER' : seatNum <= count * 0.8 ? 'GOLD' : seatNum <= count * 0.95 ? 'PLATINUM' : 'RECLINER';
-        bulkData.push({ seatNumber: `A${seatNum}`, seatType, screenId: Number(selectedScreenForSeats), isActive: true });
+        bulkData.push({ seatNumber: `${bulkSeatPrefix}${existing + i}`, seatType: bulkSeatType, screenId: Number(selectedScreenForSeats), isActive: true });
       }
       await api.post('/seats/bulk-add', bulkData);
-      setMessage(`${count} seats added!`);
+      setMessage({ text: `${count} seats added!`, type: 'success' });
       setBulkSeatCount('');
       refreshSeats();
     } catch (err) {
-      setMessage(err.response?.data?.message || 'Failed');
+      setMessage({ text: err.response?.data?.message || 'Failed', type: 'error' });
     }
   };
 
@@ -213,10 +236,10 @@ export default function TheaterOwnerDashboard() {
     if (!window.confirm('Delete this seat?')) return;
     try {
       await api.delete(`/seats/${id}`);
-      setMessage('Seat deleted!');
+      setMessage({ text: 'Seat deleted!', type: 'success' });
       refreshSeats();
     } catch (err) {
-      setMessage(err.response?.data?.message || 'Failed');
+      setMessage({ text: err.response?.data?.message || 'Failed', type: 'error' });
     }
   };
 
@@ -232,9 +255,10 @@ export default function TheaterOwnerDashboard() {
           <option value="">-- Choose Theater --</option>
           {theaters.filter(t => t.isActive).map((t) => <option key={t.id} value={t.id}>{t.name} ({t.cityName})</option>)}
         </select>
+        {theaters.filter(t => t.isActive).length === 0 && <p style={emptyStyle}>No theaters available</p>}
       </div>
 
-      {message && <p style={{ color: '#28a745', marginBottom: 12 }}>{message}</p>}
+      {message && <p ref={msgRef} style={{ color: message.type === 'error' ? '#dc3545' : '#28a745', marginBottom: 12, padding: 8, background: message.type === 'error' ? '#f8d7da' : '#d4edda', borderRadius: 4 }}>{message.text}</p>}
 
       {selectedTheater && (
         <>
@@ -294,6 +318,7 @@ export default function TheaterOwnerDashboard() {
                       <option value="">-- Select Screen --</option>
                       {screens.filter(s => s.isActive).map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
                   </select>
+                  {screens.filter(s => s.isActive).length === 0 && <p style={emptyStyle}>No screens available for this theater</p>}
                 </div>
                 <div style={{ marginBottom: 10 }}>
                   <label style={{ display: 'block', fontSize: 13, marginBottom: 2, fontWeight: 'bold' }}>Movie</label>
@@ -301,6 +326,7 @@ export default function TheaterOwnerDashboard() {
                     <option value="">-- Select Movie --</option>
                     {movies.map((m) => <option key={m.id} value={m.id}>{m.title}</option>)}
                   </select>
+                  {movies.length === 0 && <p style={emptyStyle}>No active movies available</p>}
                 </div>
                 <FormField label="Start Time" name="startTime" type="datetime-local" value={showForm.startTime} onChange={(e) => setShowForm({ ...showForm, startTime: e.target.value })} required />
                 <div style={{ marginBottom: 10 }}>
@@ -352,6 +378,7 @@ export default function TheaterOwnerDashboard() {
                     <option value="">-- Choose Screen --</option>
                     {screens.filter(s => s.isActive).map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
                   </select>
+                  {screens.filter(s => s.isActive).length === 0 && <p style={emptyStyle}>No screens available</p>}
                 </div>
                 {selectedScreenForSeats && (
                   <>
@@ -380,6 +407,8 @@ export default function TheaterOwnerDashboard() {
                     <div>
                       <h3 style={{ marginBottom: 12 }}>Bulk Add Seats</h3>
                       <FormField label="Number of seats to add" name="bulkCount" type="number" value={bulkSeatCount} onChange={(e) => setBulkSeatCount(e.target.value)} required />
+                      <FormField label="Seat prefix (e.g. A, B, C)" name="bulkPrefix" value={bulkSeatPrefix} onChange={(e) => setBulkSeatPrefix(e.target.value)} required />
+                      <FormField label="Seat type" name="bulkType" type="select" value={bulkSeatType} onChange={(e) => setBulkSeatType(e.target.value)} options={['SILVER', 'GOLD', 'PLATINUM', 'RECLINER']} required />
                       <button type="button" onClick={handleBulkAddSeats} disabled={!bulkSeatCount} style={{ ...btnStyle, background: '#e50914', color: '#fff', opacity: !bulkSeatCount ? 0.5 : 1, cursor: !bulkSeatCount ? 'not-allowed' : 'pointer' }}>Bulk Add</button>
                     </div>
                   </>
@@ -390,6 +419,7 @@ export default function TheaterOwnerDashboard() {
                 <h3 style={{ marginBottom: 12 }}>Seats {selectedScreenForSeats ? `(${seats.length})` : ''}</h3>
                 {!selectedScreenForSeats ? <p style={{ color: '#666' }}>Select a screen above.</p> : (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                    {filteredByStatus(seats).length === 0 && <p style={emptyStyle}>No seats found for this screen</p>}
                     {filteredByStatus(seats).map((s) => (
                       <div key={s.id} style={{ background: '#fff', padding: 10, borderRadius: 6, boxShadow: '0 1px 4px rgba(0,0,0,0.08)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <div><strong>{s.seatNumber}</strong> <span style={{ fontSize: 12, color: '#666' }}>({s.seatType})</span></div>

@@ -39,11 +39,14 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     List<Booking> findByUserIdWithHierarchy(@Param("userId") Long userId);
 
     @Query(value = "SELECT b FROM Booking b " +
+           "JOIN FETCH b.user " +
            "JOIN FETCH b.show s " +
            "JOIN FETCH s.movie " +
            "JOIN FETCH s.screen sc " +
-           "JOIN FETCH sc.theater " +
-           "WHERE b.user.id = :userId",
+           "JOIN FETCH sc.theater t " +
+           "JOIN FETCH t.city " +
+           "WHERE b.user.id = :userId "+
+            "AND b.status='CONFIRMED' ",
            countQuery = "SELECT COUNT(b) FROM Booking b WHERE b.user.id = :userId")
     Page<Booking> findPaginatedByUserId(@Param("userId") Long userId, Pageable pageable);
 }

@@ -19,8 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -28,6 +27,7 @@ import java.util.stream.Collectors;
 public class ShowServiceImpl implements ShowService {
 
     private static final int CLEANING_BUFFER_MINUTES = 20;
+    private static final int SHOW_CUTOFF_MINUTES = 5;
 
     private final ShowRepository showRepository;
     private final MovieRepository movieRepository;
@@ -158,6 +158,10 @@ public class ShowServiceImpl implements ShowService {
 
     private void createShowSeats(Show show, Screen screen, Map<SeatType, Double> prices) {
         List<Seat> physicalSeats = seatRepository.findByScreenId(screen.getId());
+        if(physicalSeats.isEmpty())
+        {
+            throw new RuntimeException("seats are not added in this screen "+ screen.getName()+". show can't be added here");
+        }
         List<ShowSeat> showSeats = physicalSeats.stream().map(seat -> {
             ShowSeat showSeat = new ShowSeat();
             showSeat.setShow(show);
@@ -248,6 +252,10 @@ public class ShowServiceImpl implements ShowService {
         return mapToResponse(show);
     }
 
+    private boolean isShowUpcoming(Show show) {
+        return show.getStartTime().isAfter(LocalDateTime.now().plusMinutes(SHOW_CUTOFF_MINUTES));
+    }
+
     @Override
     public List<ShowResponse> getShowsByScreen(Long screenId) {
         return showRepository.findByScreenId(screenId).stream()
@@ -263,31 +271,92 @@ public class ShowServiceImpl implements ShowService {
     }
 
     @Override
-    public List<ShowResponse> getShowsByMovie(Long movieId) {
-        return showRepository.findByMovieId(movieId).stream()
-                .map(this::mapToResponse)
+    public Map<Long,List<ShowResponse>> getShowsByMovie(Long movieId) {
+        List<Show> showsList=showRepository.findByMovieId(movieId).stream()
+                .filter(this::isShowUpcoming)
                 .collect(Collectors.toList());
+        if(showsList.isEmpty())
+        {
+            return new HashMap<>();
+        }
+        Map<Long, List<ShowResponse>> map=new HashMap<>();
+
+        for(Show show:showsList)
+        {
+            Long theatreId=show.getScreen().getTheater().getId();
+            if(!map.containsKey(theatreId))
+            {
+                map.put(theatreId,new ArrayList<>());
+            }
+            map.get(theatreId).add(mapToResponse(show));
+
+        }
+
+        return map;
+
     }
 
     @Override
     @Cacheable(value = "shows", key = "'city:' + #cityId")
     public List<ShowResponse> getShowsByCity(Long cityId) {
         return showRepository.findByCityId(cityId).stream()
+                .filter(this::isShowUpcoming)
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
 
     @Override
     @Cacheable(value = "shows", key = "'movie:' + #movieId + ':city:' + #cityId")
-    public List<ShowResponse> getShowsByMovieAndCity(Long movieId, Long cityId) {
-        return showRepository.findByMovieAndCity(movieId, cityId).stream()
-                .map(this::mapToResponse)
+    public Map<Long,List<ShowResponse>> getShowsByMovieAndCity(Long movieId, Long cityId) {
+        List<Show> shows=showRepository.findByMovieAndCity(movieId, cityId).stream()
+                .filter(this::isShowUpcoming)
                 .collect(Collectors.toList());
+        if(shows.isEmpty())
+        {
+            return  new HashMap<>();
+        }
+        Map<Long,List<ShowResponse>> showResponseByTheatre=new HashMap<>();
+        for(Show show:shows)
+        {
+            long theatreId=show.getScreen().getTheater().getId();
+            if(!showResponseByTheatre.containsKey(theatreId))
+            {
+                showResponseByTheatre.put(theatreId,new ArrayList<>());
+            }
+            showResponseByTheatre.get(theatreId).add(mapToResponse(show));
+        }
+
+        return showResponseByTheatre;
+
+    }
+
+    @Override
+    @Cacheable(value = "shows", key = "'movie:' + #movieId + ':city:' + #cityId + ':date:' + #date")
+    public Map<Long,List<ShowResponse>> getShowsByMovieAndCityAndDate(Long movieId, Long cityId, java.time.LocalDate date) {
+        List<Show> shows=showRepository.findByMovieAndCityAndDate(movieId, cityId, date.atStartOfDay()).stream()
+                .filter(this::isShowUpcoming)
+                .collect(Collectors.toList());
+        if(shows.isEmpty())
+        {
+            return new HashMap<>();
+        }
+        Map<Long,List<ShowResponse>> showResponseByTheatre=new HashMap<>();
+        for(Show show:shows)
+        {
+            long theatreId=show.getScreen().getTheater().getId();
+            if(!showResponseByTheatre.containsKey(theatreId))
+            {
+                showResponseByTheatre.put(theatreId,new ArrayList<>());
+            }
+            showResponseByTheatre.get(theatreId).add(mapToResponse(show));
+        }
+        return showResponseByTheatre;
     }
 
     @Override
     public List<ShowResponse> getShowsByMovieAndDate(Long movieId, java.time.LocalDate date) {
         return showRepository.findByMovieAndDate(movieId, date.atStartOfDay()).stream()
+                .filter(this::isShowUpcoming)
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
@@ -296,6 +365,7 @@ public class ShowServiceImpl implements ShowService {
     @Cacheable(value = "shows", key = "'active'")
     public List<ShowResponse> getActiveShows() {
         return showRepository.findByIsActiveTrue().stream()
+                .filter(this::isShowUpcoming)
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
