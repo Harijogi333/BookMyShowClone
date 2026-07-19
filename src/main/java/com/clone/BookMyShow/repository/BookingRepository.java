@@ -47,6 +47,6 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
            "JOIN FETCH t.city " +
            "WHERE b.user.id = :userId "+
             "AND b.status='CONFIRMED' ",
-           countQuery = "SELECT COUNT(b) FROM Booking b WHERE b.user.id = :userId")
+           countQuery = "SELECT COUNT(b) FROM Booking b WHERE b.user.id = :userId and b.status='CONFIRMED' ")
     Page<Booking> findPaginatedByUserId(@Param("userId") Long userId, Pageable pageable);
 }

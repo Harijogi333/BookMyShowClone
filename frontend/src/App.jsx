@@ -18,8 +18,8 @@ function AppRoutes() {
     <Routes>
       <Route path="/login" element={user ? <Navigate to="/" /> : <Login />} />
       <Route path="/register" element={user ? <Navigate to="/" /> : <Register />} />
-      <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
-      <Route path="/movies/:movieId" element={<ProtectedRoute><MovieDetails /></ProtectedRoute>} />
+      <Route path="/" element={<Home />} />
+      <Route path="/movies/:movieId" element={<MovieDetails />} />
       <Route path="/booking/:showId" element={<ProtectedRoute><Booking /></ProtectedRoute>} />
       <Route path="/my-bookings" element={<ProtectedRoute><MyBookings /></ProtectedRoute>} />
       <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />

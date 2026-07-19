@@ -1,5 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import SearchBar from './SearchBar';
 
 export default function Navbar() {
   const { user, logout } = useAuth();
@@ -13,6 +14,7 @@ export default function Navbar() {
   return (
     <nav style={navStyle}>
       <Link to="/" style={logoStyle}>BookMyShow</Link>
+      <SearchBar />
       <div style={linkStyle}>
         {user ? (
           <>

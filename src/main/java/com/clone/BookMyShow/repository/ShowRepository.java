@@ -39,12 +39,13 @@ public interface ShowRepository extends JpaRepository<Show, Long> {
            "JOIN FETCH t.city c " +
            "JOIN FETCH s.movie m " +
            "WHERE s.screen.id = :screenId " +
-           "AND s.isActive = true " +
+            "AND s.startTime> :minStartTime "+
+           "AND s.isActive = true "+
            "AND sc.isActive = true " +
            "AND t.isActive = true " +
            "AND c.isActive = true " +
            "AND m.isActive = true")
-    List<Show> findByScreenId(@Param("screenId") Long screenId);
+    List<Show> findByScreenId(@Param("screenId") Long screenId, @Param("minStartTime") LocalDateTime minStartTime);
 
     @Query("SELECT s FROM Show s " +
            "JOIN FETCH s.screen sc " +

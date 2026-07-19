@@ -23,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -39,8 +40,8 @@ public class BookingServiceImpl implements BookingService {
     @CacheEvict(value = "showSeats", allEntries = true)
     public BookingResponse createBooking(BookingRequest bookingRequest) {
         // 1. Get Authenticated User
-        CustomUserDetails currentUser = (CustomUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        User user = userRepository.findById(currentUser.getId())
+        CustomUserDetails currentUser = (CustomUserDetails) Objects.requireNonNull(SecurityContextHolder.getContext().getAuthentication()).getPrincipal();
+        User user = userRepository.findById(currentUser != null ? currentUser.getId() : null)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         // 2. Load ShowSeats with Pessimistic Lock to prevent double booking
@@ -56,7 +57,7 @@ public class BookingServiceImpl implements BookingService {
             if (!ss.getShow().getId().equals(show.getId())) {
                 throw new IllegalArgumentException("All seats must belong to the same show");
             }
-            if (ss.getStatus() != ShowSeatStatus.AVAILABLE && !(ss.getStatus()==ShowSeatStatus.BLOCKED && ss.getBooking().getUser().getId()==user.getId())) {
+            if (ss.getStatus() != ShowSeatStatus.AVAILABLE && !(ss.getStatus()==ShowSeatStatus.BLOCKED && Objects.equals(ss.getBooking().getUser().getId(), user.getId()))) {
                 throw new IllegalStateException("Seat " + ss.getSeat().getSeatNumber() + " is no longer available");
             }
         }

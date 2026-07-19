@@ -258,7 +258,9 @@ public class ShowServiceImpl implements ShowService {
 
     @Override
     public List<ShowResponse> getShowsByScreen(Long screenId) {
-        return showRepository.findByScreenId(screenId).stream()
+
+        LocalDateTime minStartTime=LocalDateTime.now().plusMinutes(5);
+        return showRepository.findByScreenId(screenId,minStartTime).stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
