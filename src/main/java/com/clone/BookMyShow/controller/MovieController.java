@@ -6,9 +6,11 @@ import com.clone.BookMyShow.service.MovieService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -19,16 +21,21 @@ public class MovieController {
 
     private final MovieService movieService;
 
-    @PostMapping("/add")
+    @PostMapping(value = "/add", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<MovieResponse> addMovie(@Valid @RequestBody MovieRequest movieRequest) {
-        return new ResponseEntity<>(movieService.addMovie(movieRequest), HttpStatus.CREATED);
+    public ResponseEntity<MovieResponse> addMovie(
+            @RequestPart("movie") @Valid MovieRequest movieRequest,
+            @RequestPart(value = "file", required = false) MultipartFile file) {
+        return new ResponseEntity<>(movieService.addMovie(movieRequest, file), HttpStatus.CREATED);
     }
 
-    @PutMapping("/{id}")
+    @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<MovieResponse> updateMovie(@PathVariable Long id, @Valid @RequestBody MovieRequest movieRequest) {
-        return ResponseEntity.ok(movieService.updateMovie(id, movieRequest));
+    public ResponseEntity<MovieResponse> updateMovie(
+            @PathVariable Long id,
+            @RequestPart("movie") @Valid MovieRequest movieRequest,
+            @RequestPart(value = "file", required = false) MultipartFile file) {
+        return ResponseEntity.ok(movieService.updateMovie(id, movieRequest, file));
     }
 
     @DeleteMapping("/{id}")

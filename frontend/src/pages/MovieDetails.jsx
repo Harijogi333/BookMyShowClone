@@ -87,7 +87,7 @@ export default function MovieDetails() {
   return (
     <div style={{ padding: 24 }}>
       <div style={{ display: 'flex', gap: 24, marginBottom: 32 }}>
-        <div style={imgPlaceholder}>{movie.title[0]}</div>
+        <div style={posterWrap}>{movie.imageUrl ? <img src={movie.imageUrl} alt={movie.title} style={imgStyle} /> : <div style={posterText}>{movie.title[0]}</div>}</div>
         <div>
           <h1>{movie.title}</h1>
           <p><strong>Genre:</strong> {movie.genre}</p>
@@ -138,10 +138,9 @@ export default function MovieDetails() {
 }
 
 const centerStyle = { display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh' };
-const imgPlaceholder = {
-  width: 200, height: 280, background: '#e50914', display: 'flex', alignItems: 'center',
-  justifyContent: 'center', fontSize: 64, color: '#fff', fontWeight: 'bold', borderRadius: 8, flexShrink: 0,
-};
+const posterWrap = { width: 200, aspectRatio: '2/3', background: '#e50914', borderRadius: 8, overflow: 'hidden', flexShrink: 0 };
+const posterText = { width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 64, color: '#fff', fontWeight: 'bold' };
+const imgStyle = { width: '100%', height: '100%', objectFit: 'cover', display: 'block' };
 const gridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 16, marginTop: 12 };
 const cardStyle = {
   textDecoration: 'none', color: 'inherit', background: '#fff', padding: 16,

@@ -30,6 +30,8 @@ export default function AdminDashboard() {
     }
   }, [message]);
   const [movieForm, setMovieForm] = useState({ title: '', description: '', durationInMinutes: '', language: 'ENGLISH', genre: 'ACTION' });
+  const [movieFile, setMovieFile] = useState(null);
+  const [editMovieFile, setEditMovieFile] = useState(null);
   const [cityForm, setCityForm] = useState({ name: '' });
   const [editingMovie, setEditingMovie] = useState(null);
   const [movieEditForm, setMovieEditForm] = useState({ title: '', description: '', durationInMinutes: '', language: 'ENGLISH', genre: 'ACTION', isActive: true });
@@ -104,9 +106,14 @@ export default function AdminDashboard() {
   const handleAddMovie = async (e) => {
     e.preventDefault();
     try {
-      await api.post('/movies/add', { ...movieForm, durationInMinutes: Number(movieForm.durationInMinutes) });
+      const blob = new Blob([JSON.stringify({ ...movieForm, durationInMinutes: Number(movieForm.durationInMinutes) })], { type: 'application/json' });
+      const fd = new FormData();
+      fd.append('movie', blob, 'movie.json');
+      if (movieFile) fd.append('file', movieFile);
+      await api.post('/movies/add', fd);
       setMessage({ text: 'Movie added!', type: 'success' });
       setMovieForm({ title: '', description: '', durationInMinutes: '', language: 'ENGLISH', genre: 'ACTION' });
+      setMovieFile(null);
       refreshMovies();
     } catch (err) {
       setMessage({ text: err.response?.data?.message || 'Failed', type: 'error' });
@@ -133,10 +140,15 @@ export default function AdminDashboard() {
   const handleMovieEditSubmit = async (e) => {
     e.preventDefault();
     try {
-      await api.put(`/movies/${editingMovie.id}`, { ...movieEditForm, durationInMinutes: Number(movieEditForm.durationInMinutes), rating: editingMovie.rating });
+      const blob = new Blob([JSON.stringify({ ...movieEditForm, durationInMinutes: Number(movieEditForm.durationInMinutes), rating: editingMovie.rating })], { type: 'application/json' });
+      const fd = new FormData();
+      fd.append('movie', blob, 'movie.json');
+      if (editMovieFile) fd.append('file', editMovieFile);
+      await api.put(`/movies/${editingMovie.id}`, fd);
       setMessage({ text: 'Movie updated!', type: 'success' });
       setEditingMovie(null);
       setMovieEditForm({ title: '', description: '', durationInMinutes: '', language: 'ENGLISH', genre: 'ACTION', isActive: true });
+      setEditMovieFile(null);
       refreshMovies();
     } catch (err) {
       setMessage({ text: err.response?.data?.message || 'Failed', type: 'error' });
@@ -330,6 +342,10 @@ export default function AdminDashboard() {
             <FormField label="Title" name="title" value={editingMovie ? movieEditForm.title : movieForm.title} onChange={(e) => editingMovie ? setMovieEditForm({ ...movieEditForm, title: e.target.value }) : setMovieForm({ ...movieForm, title: e.target.value })} required />
             <FormField label="Description" name="description" value={editingMovie ? movieEditForm.description : movieForm.description} onChange={(e) => editingMovie ? setMovieEditForm({ ...movieEditForm, description: e.target.value }) : setMovieForm({ ...movieForm, description: e.target.value })} />
             <FormField label="Duration (min)" name="durationInMinutes" type="number" value={editingMovie ? movieEditForm.durationInMinutes : movieForm.durationInMinutes} onChange={(e) => editingMovie ? setMovieEditForm({ ...movieEditForm, durationInMinutes: e.target.value }) : setMovieForm({ ...movieForm, durationInMinutes: e.target.value })} required />
+            <div style={{ marginBottom: 10 }}>
+              <label style={{ display: 'block', fontSize: 13, marginBottom: 2, fontWeight: 'bold' }}>Poster Image</label>
+              <input type="file" accept="image/*" onChange={(e) => editingMovie ? setEditMovieFile(e.target.files[0]) : setMovieFile(e.target.files[0])} style={inputStyle} />
+            </div>
             <div style={{ marginBottom: 10 }}>
               <label style={{ display: 'block', fontSize: 13, marginBottom: 2, fontWeight: 'bold' }}>Language</label>
               <select name="language" value={editingMovie ? movieEditForm.language : movieForm.language} onChange={(e) => editingMovie ? setMovieEditForm({ ...movieEditForm, language: e.target.value }) : setMovieForm({ ...movieForm, language: e.target.value })} style={inputStyle}>

@@ -43,6 +43,17 @@ logging:
             sql:
               BasicBinder: TRACE
 
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 5MB
+      max-request-size: 5MB
+
+cloudinary:
+  cloud-name: ${CLOUDINARY_CLOUD_NAME}
+  api-key: ${CLOUDINARY_API_KEY}
+  api-secret: ${CLOUDINARY_API_SECRET}
+
 stripe:
     api:
       secret-key: ${Stripe_secret}
