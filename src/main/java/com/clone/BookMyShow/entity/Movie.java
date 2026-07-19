@@ -46,6 +46,10 @@ public class Movie {
     @Column(nullable = false)
     private Boolean isActive = true;
 
+    private String imageUrl;
+
+    private String cloudinaryPublicId;
+
     @CreationTimestamp
     @Column(updatable = false)
     private LocalDateTime createdAt;

@@ -47,7 +47,7 @@ export default function Home() {
       <div style={gridStyle}>
         {filteredMovies.map((movie) => (
           <Link to={`/movies/${movie.id}?cityId=${selectedCity || ''}`} key={movie.id} style={cardStyle}>
-            <div style={imgPlaceholder}>{movie.title[0]}</div>
+            <div style={posterWrap}>{movie.imageUrl ? <img src={movie.imageUrl} alt={movie.title} style={imgStyle} /> : <div style={posterText}>{movie.title[0]}</div>}</div>
             <div style={cardBody}>
               <h3>{movie.title}</h3>
               <p>{movie.genre} | {movie.language}</p>
@@ -60,14 +60,13 @@ export default function Home() {
   );
 }
 
-const gridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: 20, marginTop: 20 };
+const gridStyle = { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: 16, marginTop: 20 };
 const cardStyle = {
   textDecoration: 'none', color: 'inherit', background: '#fff', borderRadius: 8,
   overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', transition: 'transform 0.2s',
 };
-const imgPlaceholder = {
-  height: 200, background: '#e50914', display: 'flex', alignItems: 'center',
-  justifyContent: 'center', fontSize: 48, color: '#fff', fontWeight: 'bold',
-};
+const posterWrap = { width: '100%', aspectRatio: '2/3', background: '#e50914', overflow: 'hidden' };
+const posterText = { width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 48, color: '#fff', fontWeight: 'bold' };
+const imgStyle = { width: '100%', height: '100%', objectFit: 'cover', display: 'block' };
 const cardBody = { padding: 12 };
 const selectStyle = { padding: '8px 12px', borderRadius: 4, border: '1px solid #ddd', fontSize: 14 };

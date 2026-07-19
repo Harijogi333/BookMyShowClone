@@ -24,6 +24,7 @@ public class MovieResponse implements Serializable {
     private Genre genre;
     private Double rating;
     private Boolean isActive;
+    private String imageUrl;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }
